@@ -58,9 +58,11 @@ https://<render-service>.onrender.com/docs
 1. https://vercel.com adresine GitHub hesabıyla giriş yap.
 2. Dashboard'da **Add New...** veya **New Project** seç.
 3. `YZTA-Hackathon-Koopilot/Koopilot` reposunu seç.
-4. Import ekranında ayarları şu şekilde yap:
+4. Vercel repo içinde `frontend` ve `backend` gördüğü için "multiple services" veya `experimentalServices` önerirse bunu kullanma. Backend Render'da çalışıyor; Vercel projesi sadece frontend için açılacak.
+5. Import ekranında ayarları şu şekilde yap:
 
 ```text
+Project Name: koopilot
 Framework Preset: Vite
 Root Directory: frontend
 Build Command: npm run build
@@ -68,14 +70,15 @@ Output Directory: dist
 Install Command: npm install
 ```
 
-5. **Environment Variables** bölümüne şunu ekle:
+6. **Environment Variables** bölümüne şunu ekle:
 
 ```env
 VITE_API_URL=https://koopilot-backend.onrender.com
 ```
 
-6. **Deploy** butonuna bas.
-7. Deploy bitince Vercel'in verdiği frontend URL'ini aç.
+7. Environment seçimi sorarsa **Production**, **Preview** ve **Development** hepsini seç.
+8. **Deploy** butonuna bas.
+9. Deploy bitince Vercel'in verdiği frontend URL'ini aç.
 
 Canlı frontend açıldığında tarayıcı geliştirici konsolunda API isteklerinin şu backend'e gittiği kontrol edilmeli:
 
