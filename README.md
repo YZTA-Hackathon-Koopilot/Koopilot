@@ -217,7 +217,7 @@ config={
 
 ```bash
 # 1. Repo'yu klonla
-git clone https://github.com/kkaan1907/YZTA-Hackathon-Koopilot.git
+git clone https://github.com/YZTA-Hackathon-Koopilot/Koopilot.git
 cd YZTA-Hackathon-Koopilot
 
 # 2. Backend sanal ortam oluştur

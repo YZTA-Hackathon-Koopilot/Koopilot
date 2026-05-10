@@ -57,7 +57,7 @@ https://<render-service>.onrender.com/docs
 
 1. https://vercel.com adresine GitHub hesabıyla giriş yap.
 2. Dashboard'da **Add New...** veya **New Project** seç.
-3. `kkaan1907/YZTA-Hackathon-Koopilot` reposunu seç.
+3. `YZTA-Hackathon-Koopilot/Koopilot` reposunu seç.
 4. Import ekranında ayarları şu şekilde yap:
 
 ```text
