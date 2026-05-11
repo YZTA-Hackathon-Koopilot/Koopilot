@@ -101,7 +101,15 @@ body {
     position: relative;
     min-height: 100vh;
     overflow: hidden auto;
-    background-color: var(--bg-cream);
+    background: linear-gradient(
+        -45deg,
+        var(--bg-cream),
+        color-mix(in srgb, var(--primary-light) 8%, var(--bg-cream)),
+        color-mix(in srgb, var(--primary-dark) 10%, var(--bg-cream)),
+        color-mix(in srgb, var(--primary-mid) 8%, var(--bg-cream))
+    );
+    background-size: 400% 400%;
+    animation: antigravityGradient 4s ease infinite;
     color: var(--text-dark);
 }
 
@@ -174,9 +182,28 @@ body {
     border-radius: 28px;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
-    background: var(--surface);
+    background: linear-gradient(
+        135deg,
+        var(--surface),
+        color-mix(in srgb, var(--primary-light) 12%, var(--surface)),
+        color-mix(in srgb, var(--primary-light) 24%, var(--surface)),
+        color-mix(in srgb, var(--primary-mid) 8%, var(--surface))
+    );
+    background-size: 300% 300%;
+    animation: antigravityGradient 8s ease-in-out infinite;
     border: 1px solid var(--border-color);
     box-shadow: var(--shadow-soft);
+}
+@keyframes antigravityGradient {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
 }
 .login-card-back {
     transform: rotateY(180deg);

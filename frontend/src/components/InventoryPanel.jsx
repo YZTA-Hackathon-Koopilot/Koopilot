@@ -403,7 +403,7 @@ const InventoryPanel = ({ searchTerm }) => {
           <h3
             style={{
               margin: 0,
-              color: "var(--sidebar-text)",
+              color: "var(--primary-dark)",
               fontSize: "16px",
               fontWeight: "700",
               textAlign: "center",
@@ -506,7 +506,7 @@ const InventoryPanel = ({ searchTerm }) => {
                 100 - inventory.filter((i) => i.stock < 5).length * 10,
               )}
             </div>
-            <div style={{ color: "rgba(255,255,255,0.6)", fontSize: "12px" }}>
+            <div style={{ color: "var(--text-light)", fontSize: "12px" }}>
               Genel Stok Sağlığı
             </div>
           </div>

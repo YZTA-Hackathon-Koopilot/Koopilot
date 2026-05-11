@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { FaGithub, FaTelegramPlane } from "react-icons/fa";
 import {
   Leaf,
@@ -24,6 +24,142 @@ const teamLinks = [
   { name: "Zeynep", href: "https://github.com/search?q=Zeynep&type=users" },
   { name: "Muhammed", href: "https://github.com/muhammedkoseoglu" },
 ];
+
+const ParticleNetwork = () => {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    let animationFrameId;
+    let particles = [];
+    let mouse = { x: null, y: null, radius: 160 };
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      initParticles();
+    };
+
+    const handleMouseMove = (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    };
+
+    const handleMouseOut = () => {
+      mouse.x = null;
+      mouse.y = null;
+    };
+
+    window.addEventListener('resize', resize);
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseout', handleMouseOut);
+
+    class Particle {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 2 + 0.5;
+        this.speedX = Math.random() * 1 - 0.5;
+        this.speedY = Math.random() * 1 - 0.5;
+        this.color = `rgba(82, 183, 136, ${Math.random() * 0.5 + 0.2})`; 
+      }
+      update() {
+        if (this.x > canvas.width || this.x < 0) this.speedX = -this.speedX;
+        if (this.y > canvas.height || this.y < 0) this.speedY = -this.speedY;
+        
+        this.x += this.speedX;
+        this.y += this.speedY;
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+      }
+    }
+
+    const initParticles = () => {
+      particles = [];
+      let numberOfParticles = (canvas.width * canvas.height) / 10000;
+      for (let i = 0; i < numberOfParticles; i++) {
+        particles.push(new Particle());
+      }
+    };
+
+    const connect = () => {
+      let maxDistance = 140;
+      for (let a = 0; a < particles.length; a++) {
+        for (let b = a; b < particles.length; b++) {
+          let dx = particles[a].x - particles[b].x;
+          let dy = particles[a].y - particles[b].y;
+          let distance = dx * dx + dy * dy;
+          
+          if (distance < maxDistance * maxDistance) {
+            let opacity = 1 - (distance / (maxDistance * maxDistance));
+            ctx.strokeStyle = `rgba(82, 183, 136, ${opacity * 0.3})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(particles[a].x, particles[a].y);
+            ctx.lineTo(particles[b].x, particles[b].y);
+            ctx.stroke();
+          }
+        }
+        
+        if (mouse.x != null && mouse.y != null) {
+            let dx = particles[a].x - mouse.x;
+            let dy = particles[a].y - mouse.y;
+            let distance = dx * dx + dy * dy;
+            
+            if (distance < mouse.radius * mouse.radius) {
+                let opacity = 1 - (distance / (mouse.radius * mouse.radius));
+                ctx.strokeStyle = `rgba(82, 183, 136, ${opacity * 0.6})`;
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(particles[a].x, particles[a].y);
+                ctx.lineTo(mouse.x, mouse.y);
+                ctx.stroke();
+            }
+        }
+      }
+    };
+
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < particles.length; i++) {
+        particles[i].update();
+        particles[i].draw();
+      }
+      connect();
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    resize();
+    animate();
+
+    return () => {
+      window.removeEventListener('resize', resize);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseout', handleMouseOut);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        zIndex: 0,
+        pointerEvents: 'none'
+      }}
+    />
+  );
+};
 
 const Login = ({ onLogin }) => {
   const [isLoginMode, setIsLoginMode] = useState(true);
@@ -101,6 +237,7 @@ const Login = ({ onLogin }) => {
   return (
     <div className="login-hero-shell">
       <div className="login-bg" aria-hidden="true">
+        <ParticleNetwork />
         <div className="login-bg-blob login-bg-blob-1" />
         <div className="login-bg-blob login-bg-blob-2" />
       </div>
