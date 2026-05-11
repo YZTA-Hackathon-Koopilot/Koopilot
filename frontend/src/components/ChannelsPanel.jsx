@@ -79,9 +79,7 @@ const ChannelCard = ({ title, channel, icon, tone }) => (
       </span>
     </div>
 
-    <p style={{ margin: 0, color: 'var(--text-dark)', lineHeight: 1.6 }}>
-      {channel.honest_note}
-    </p>
+
 
     <div style={{
       display: 'grid',
@@ -192,7 +190,7 @@ const ChannelsPanel = () => {
           <div>
             <h2 style={{ margin: 0, fontSize: '24px' }}>Kanal Bağlantıları</h2>
             <p style={{ margin: '6px 0 0', color: 'var(--text-light)', lineHeight: 1.6 }}>
-              Bu sayfa hangi mesaj kanallarının gerçekten bağlı olduğunu dürüstçe gösterir. WhatsApp şu anda canlı bağlı değil; altyapısı hazır ve web panelinden test edilebilir.
+              Koopilot'un desteklediği tüm aktif ve entegre edilebilir iletişim kanallarının durumunu buradan takip edebilirsiniz.
             </p>
           </div>
           <span style={{
@@ -244,23 +242,7 @@ const ChannelsPanel = () => {
         />
       </div>
 
-      <section style={{
-        backgroundColor: 'var(--surface)',
-        border: '1px solid var(--border-color)',
-        borderRadius: '20px',
-        padding: '20px',
-        display: 'flex',
-        gap: '14px',
-        alignItems: 'flex-start'
-      }}>
-        <ExternalLink size={20} color="var(--primary-mid)" />
-        <div>
-          <h3 style={{ margin: 0, fontSize: '17px' }}>Demo anlatımında kullanılacak dürüst cümle</h3>
-          <p style={{ margin: '8px 0 0', color: 'var(--text-light)', lineHeight: 1.6 }}>
-            “WhatsApp Business API bağlantısını hackathon süresinde canlıya almadık. Ancak backend’de Meta webhook doğrulama, gelen mesajı AI ajan hattına aktarma ve token tanımlanınca cevap gönderme adaptörü hazır. Bugünkü demoda aynı akışı web panelinden test mesajıyla gösteriyoruz.”
-          </p>
-        </div>
-      </section>
+
     </div>
   );
 };
