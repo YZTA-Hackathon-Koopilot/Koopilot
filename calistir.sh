@@ -9,8 +9,12 @@ BACKEND_PORT="${BACKEND_PORT:-8000}"
 FRONTEND_PORT="${FRONTEND_PORT:-5173}"
 
 PIDS=()
+_CLEANED=0
 
 cleanup() {
+  # Çift çalışmayı önle (INT + EXIT birlikte tetiklenebilir)
+  [ "$_CLEANED" -eq 1 ] && return
+  _CLEANED=1
   echo
   echo "Koopilot kapatılıyor..."
   for pid in "${PIDS[@]:-}"; do
@@ -21,6 +25,18 @@ cleanup() {
 }
 
 trap cleanup EXIT INT TERM
+
+# Portu kullanan süreci öldür (varsa)
+kill_port() {
+  local port="$1"
+  local pid
+  pid=$(lsof -ti tcp:"$port" 2>/dev/null || true)
+  if [ -n "$pid" ]; then
+    echo "Uyarı: $port portu kullanımda (PID $pid), temizleniyor..."
+    kill "$pid" 2>/dev/null || true
+    sleep 1
+  fi
+}
 
 load_nvm_if_needed() {
   if command -v npm >/dev/null 2>&1; then
@@ -105,6 +121,10 @@ if [ ! -f "$BACKEND_DIR/.env" ]; then
   echo "Uyarı: backend/.env bulunamadı. Gemini/Telegram gibi entegrasyonlar çalışmayabilir."
 fi
 
+# Önceki çalışmadan kalan portları temizle
+kill_port "$BACKEND_PORT"
+kill_port "$FRONTEND_PORT"
+
 echo "Koopilot başlatılıyor..."
 echo "Backend:  http://127.0.0.1:$BACKEND_PORT"
 echo "API Docs: http://127.0.0.1:$BACKEND_PORT/docs"
@@ -116,6 +136,15 @@ echo
   "$BACKEND_PYTHON" -m uvicorn main:app --reload --port "$BACKEND_PORT"
 ) &
 PIDS+=("$!")
+
+# Backend'in ayağa kalkması için bekle
+echo "Backend bekleniyor..."
+for _ in {1..20}; do
+  if curl -fsS "http://127.0.0.1:$BACKEND_PORT/health" >/dev/null 2>&1; then
+    break
+  fi
+  sleep 1
+done
 
 (
   cd "$FRONTEND_DIR"
