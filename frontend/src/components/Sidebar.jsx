@@ -38,7 +38,8 @@ const Sidebar = ({ activeTab, setActiveTab, currentUser, onLogout }) => {
       padding: '24px 16px',
       height: '100%',
       position: 'relative',
-      zIndex: 10
+      zIndex: 10,
+      overflowX: 'hidden'
     }}>
       <div className="sidebar-brand" style={{
         display: 'flex',
@@ -61,7 +62,7 @@ const Sidebar = ({ activeTab, setActiveTab, currentUser, onLogout }) => {
           <h1 style={{ color: 'var(--sidebar-text)', fontSize: '24px', margin: 0, fontFamily: '"Fredoka", sans-serif', fontWeight: 600 }}>Koopilot</h1>
         </div>
       </div>
-      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto' }}>
+      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', overflowX: 'hidden' }}>
         {menuItems.map((item) => (
           <button
             key={item.id}
