@@ -6,6 +6,53 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+export const setAuthToken = (token) => {
+  if (token) {
+    api.defaults.headers.common.Authorization = `Bearer ${token}`;
+    return;
+  }
+  delete api.defaults.headers.common.Authorization;
+};
+
+const savedToken = localStorage.getItem('koopilot_auth_token');
+if (savedToken) {
+  setAuthToken(savedToken);
+}
+
+export const loginUser = async (email, password) => {
+  const response = await api.post('/auth/login', { email, password });
+  return response.data;
+};
+
+export const registerUser = async (name, email, password) => {
+  const response = await api.post('/auth/register', { name, email, password });
+  return response.data;
+};
+
+export const loginDemoUser = async () => {
+  const response = await api.post('/auth/demo-login');
+  return response.data;
+};
+
+export const getCurrentUser = async () => {
+  const response = await api.get('/auth/me');
+  return response.data;
+};
+
+export const changePassword = async (currentPassword, newPassword) => {
+  const response = await api.post('/auth/change-password', {
+    current_password: currentPassword,
+    new_password: newPassword,
+  });
+  return response.data;
+};
+
+export const logoutUser = async () => {
+  const response = await api.post('/auth/logout');
+  return response.data;
+};
+
 export const analyzeMessage = async (message, sessionId = null) => {
   const response = await api.post('/ai/analyze-message', {
     message,

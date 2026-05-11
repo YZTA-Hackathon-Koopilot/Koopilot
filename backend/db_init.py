@@ -1,11 +1,30 @@
 from database import SessionLocal, engine, Base
 import models
 from datetime import datetime, timedelta
+from security import hash_password
+
+
+def ensure_demo_user(db):
+    if db.query(models.User).filter(models.User.email == "demo@koopilot.local").first():
+        return
+
+    db.add(
+        models.User(
+            name="Demo Kullanıcı",
+            email="demo@koopilot.local",
+            password_hash=hash_password("demo123"),
+            role="Yönetici",
+        )
+    )
+    db.commit()
+
+
 def init_db():
     print("Veritabanı tabloları oluşturuluyor...")
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
+        ensure_demo_user(db)
         if db.query(models.Product).first():
             print("Veritabanında zaten veriler mevcut. İşlem atlanıyor.")
             return

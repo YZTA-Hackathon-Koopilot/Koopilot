@@ -9,10 +9,12 @@ from database import get_db
 import models
 import schemas
 from ai_agent import analyze_message_with_ai
+from routers.auth import get_current_user
 
 router = APIRouter(
     prefix="/ai",
-    tags=["AI"]
+    tags=["AI"],
+    dependencies=[Depends(get_current_user)]
 )
 
 RATE_LIMIT_STORE = {}

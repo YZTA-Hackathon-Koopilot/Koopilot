@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from database import engine, Base
 from db_init import init_db
 import models
-from routers import inventory, orders, shipping, ai, integrations
+from routers import inventory, orders, shipping, ai, integrations, auth
 import os
 
 Base.metadata.create_all(bind=engine)
@@ -39,6 +39,7 @@ app.include_router(orders.router)
 app.include_router(shipping.router)
 app.include_router(ai.router)
 app.include_router(integrations.router)
+app.include_router(auth.router)
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):

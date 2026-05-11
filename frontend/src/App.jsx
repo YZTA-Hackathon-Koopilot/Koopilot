@@ -10,6 +10,7 @@ import ChannelsPanel from './components/ChannelsPanel';
 import CalendarPanel from './components/CalendarPanel';
 import Login from './components/Login';
 import SettingsPanel from './components/SettingsPanel';
+import { getCurrentUser, logoutUser, setAuthToken } from './services/api';
 
 const initialChatMessages = [
   { id: 1, type: 'ai', text: 'Merhaba! Ben Koopilot. Sipariş, stok veya kargo ile ilgili size nasıl yardımcı olabilirim? 🌿' }
@@ -41,11 +42,13 @@ const readStoredJson = (key, fallback) => {
 };
 
 function App() {
+  const savedAuthToken = localStorage.getItem('koopilot_auth_token');
   const [activeTab, setActiveTab] = useState('messages');
   const [searchTerm, setSearchTerm] = useState('');
   const [theme, setTheme] = useState(() => localStorage.getItem('koopilot_theme') || 'light');
+  const [authChecking, setAuthChecking] = useState(Boolean(savedAuthToken));
   const [currentUser, setCurrentUser] = useState(() => {
-    return readStoredJson('koopilot_current_user', null);
+    return savedAuthToken ? readStoredJson('koopilot_current_user', null) : null;
   });
   const [chatMessages, setChatMessages] = useState(() => {
     return readStoredJson(getChatStorageKeys(currentUser).currentChat, initialChatMessages);
@@ -57,7 +60,11 @@ function App() {
   });
 
   useEffect(() => {
-    localStorage.setItem('koopilot_current_user', JSON.stringify(currentUser));
+    if (currentUser) {
+      localStorage.setItem('koopilot_current_user', JSON.stringify(currentUser));
+      return;
+    }
+    localStorage.removeItem('koopilot_current_user');
   }, [currentUser]);
 
   useEffect(() => {
@@ -96,6 +103,28 @@ function App() {
     setChatLoading(false);
   };
 
+  useEffect(() => {
+    const token = localStorage.getItem('koopilot_auth_token');
+    if (!token) {
+      setAuthChecking(false);
+      return;
+    }
+
+    setAuthToken(token);
+    getCurrentUser()
+      .then((user) => {
+        setCurrentUser(user);
+        loadChatStateForUser(user);
+      })
+      .catch(() => {
+        localStorage.removeItem('koopilot_auth_token');
+        localStorage.removeItem('koopilot_current_user');
+        setAuthToken(null);
+        setCurrentUser(null);
+      })
+      .finally(() => setAuthChecking(false));
+  }, []);
+
   const handleLogin = (user) => {
     setCurrentUser(user);
     loadChatStateForUser(user);
@@ -103,6 +132,10 @@ function App() {
   };
 
   const handleLogout = () => {
+    void logoutUser().catch(() => {});
+    localStorage.removeItem('koopilot_auth_token');
+    localStorage.removeItem('koopilot_current_user');
+    setAuthToken(null);
     setCurrentUser(null);
     setChatMessages(initialChatMessages);
     setChatSessionId(createSessionId());
@@ -193,6 +226,10 @@ function App() {
     };
     return titles[activeTab] || 'Dashboard';
   };
+
+  if (authChecking) {
+    return <div className="auth-loading">Koopilot oturumu kontrol ediliyor...</div>;
+  }
 
   if (!currentUser) {
     return <Login onLogin={handleLogin} />;

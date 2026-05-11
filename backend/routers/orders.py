@@ -4,10 +4,12 @@ from typing import List
 from database import get_db
 import models
 import schemas
+from routers.auth import get_current_user
 
 router = APIRouter(
     prefix="/orders",
-    tags=["Orders"]
+    tags=["Orders"],
+    dependencies=[Depends(get_current_user)]
 )
 
 @router.get("", response_model=List[schemas.OrderResponse], summary="Tüm siparişleri listele")

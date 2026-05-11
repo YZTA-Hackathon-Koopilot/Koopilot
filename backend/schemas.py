@@ -57,3 +57,34 @@ class AIFinalResponse(BaseModel):
     city: Optional[str] = Field(None, description="Teslimat veya bilgi istenen şehir adı")
     missing_info: List[str] = Field(default_factory=list, description="Eğer intent 'new_order' ise, sipariş için eksik olan bilgilerin listesi (örneğin: 'telefon', 'açık adres', 'isim')")
     ai_reply_draft: str = Field(description="Müşteriye gönderilmek üzere hazırlanmış, nazik ve profesyonel taslak cevap.")
+
+
+class AuthUserResponse(BaseModel):
+    id: int
+    name: str
+    email: str
+    role: str
+    class Config:
+        from_attributes = True
+
+
+class AuthRegisterRequest(BaseModel):
+    name: str = Field(..., min_length=2, max_length=80)
+    email: str = Field(..., min_length=5, max_length=120)
+    password: str = Field(..., min_length=6, max_length=128)
+
+
+class AuthLoginRequest(BaseModel):
+    email: str = Field(..., min_length=5, max_length=120)
+    password: str = Field(..., min_length=6, max_length=128)
+
+
+class AuthTokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: AuthUserResponse
+
+
+class PasswordChangeRequest(BaseModel):
+    current_password: str = Field(..., min_length=6, max_length=128)
+    new_password: str = Field(..., min_length=6, max_length=128)

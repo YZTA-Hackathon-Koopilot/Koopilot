@@ -1,13 +1,6 @@
 import React, { useState } from 'react';
 import { CheckCircle, KeyRound, Save, User } from 'lucide-react';
-
-const readUsers = () => {
-  try {
-    return JSON.parse(localStorage.getItem('koopilot_users')) || [];
-  } catch {
-    return [];
-  }
-};
+import { changePassword } from '../services/api';
 
 const SettingsPanel = ({ currentUser, onUserUpdate }) => {
   const [passwordData, setPasswordData] = useState({
@@ -17,8 +10,9 @@ const SettingsPanel = ({ currentUser, onUserUpdate }) => {
   });
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleChangePassword = (event) => {
+  const handleChangePassword = async (event) => {
     event.preventDefault();
     setErrorMsg('');
     setSuccessMsg('');
@@ -38,26 +32,17 @@ const SettingsPanel = ({ currentUser, onUserUpdate }) => {
       return;
     }
 
-    const users = readUsers();
-    const userIndex = users.findIndex((user) => user.email === currentUser.email);
-
-    if (userIndex === -1) {
-      setErrorMsg('Kullanıcı bulunamadı.');
-      return;
+    setIsSaving(true);
+    try {
+      const updatedUser = await changePassword(passwordData.currentPassword, passwordData.newPassword);
+      onUserUpdate?.(updatedUser);
+      setSuccessMsg('Şifreniz başarıyla güncellendi.');
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (apiError) {
+      setErrorMsg(apiError?.response?.data?.detail || 'Şifre güncellenemedi.');
+    } finally {
+      setIsSaving(false);
     }
-
-    if (users[userIndex].password !== passwordData.currentPassword) {
-      setErrorMsg('Mevcut şifrenizi yanlış girdiniz.');
-      return;
-    }
-
-    const updatedUser = { ...users[userIndex], password: passwordData.newPassword };
-    users[userIndex] = updatedUser;
-    localStorage.setItem('koopilot_users', JSON.stringify(users));
-    onUserUpdate?.(updatedUser);
-
-    setSuccessMsg('Şifreniz başarıyla güncellendi.');
-    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
   };
 
   return (
@@ -134,7 +119,7 @@ const SettingsPanel = ({ currentUser, onUserUpdate }) => {
               style={{ width: '100%', padding: '14px 16px', borderRadius: '12px' }}
             />
 
-            <button type="submit" style={{
+            <button type="submit" disabled={isSaving} style={{
               padding: '16px',
               borderRadius: '12px',
               backgroundColor: 'var(--primary-mid)',
@@ -146,7 +131,7 @@ const SettingsPanel = ({ currentUser, onUserUpdate }) => {
               gap: '8px',
               marginTop: '8px'
             }}>
-              <Save size={18} /> Şifreyi Güncelle
+              <Save size={18} /> {isSaving ? 'Güncelleniyor...' : 'Şifreyi Güncelle'}
             </button>
           </form>
         </div>

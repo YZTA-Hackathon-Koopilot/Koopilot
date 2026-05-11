@@ -6,10 +6,12 @@ import csv
 from database import get_db
 import models
 import schemas
+from routers.auth import get_current_user
 
 router = APIRouter(
     prefix="/inventory",
-    tags=["Inventory"]
+    tags=["Inventory"],
+    dependencies=[Depends(get_current_user)]
 )
 
 @router.get("", response_model=List[schemas.ProductResponse], summary="Mevcut ürünleri ve stok durumlarını listele")
