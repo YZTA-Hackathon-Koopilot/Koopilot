@@ -48,7 +48,7 @@ const Sidebar = ({ activeTab, setActiveTab, currentUser, onLogout }) => {
         padding: '0 8px'
       }}>
         <div className="brand-logo" style={{
-          backgroundColor: 'var(--primary-light)',
+          backgroundColor: 'white',
           padding: '8px',
           borderRadius: '12px',
           display: 'flex',
