@@ -17,6 +17,7 @@ import {
   registerUser,
   setAuthToken,
 } from "../services/api";
+import logoUrl from "../assets/logo.png";
 
 const teamLinks = [
   { name: "Kaan", href: "https://github.com/kkaan1907" },
@@ -109,7 +110,7 @@ const Login = ({ onLogin }) => {
         <section className="login-copy" aria-label="Koopilot tanıtım">
           <div className="login-brand-mark">
             <span>
-              <Leaf size={24} fill="currentColor" />
+              <img src={logoUrl} alt="Koopilot Logo" style={{ width: "24px", height: "24px", objectFit: "contain" }} />
             </span>
             Koopilot
           </div>
@@ -157,7 +158,7 @@ const Login = ({ onLogin }) => {
                   <p>Hesabınızla giriş yapın veya demo ile hemen başlayın.</p>
                 </div>
                 <div className="login-panel-mark">
-                  <Leaf size={20} fill="currentColor" />
+                  <img src={logoUrl} alt="Logo" style={{ width: "20px", height: "20px", objectFit: "contain" }} />
                 </div>
               </div>
               {isLoginMode && error && (
@@ -228,7 +229,7 @@ const Login = ({ onLogin }) => {
                   <p>Yeni bir personel hesabı oluşturun.</p>
                 </div>
                 <div className="login-panel-mark">
-                  <Leaf size={20} fill="currentColor" />
+                  <img src={logoUrl} alt="Logo" style={{ width: "20px", height: "20px", objectFit: "contain" }} />
                 </div>
               </div>
               {!isLoginMode && error && (

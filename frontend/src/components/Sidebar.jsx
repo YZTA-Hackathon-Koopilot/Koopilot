@@ -11,8 +11,10 @@ import {
   Leaf,
   Wheat,
   Trees,
-  Sprout
+  Sprout,
+  Settings
 } from 'lucide-react';
+import logoUrl from '../assets/logo.png';
 const Sidebar = ({ activeTab, setActiveTab, currentUser, onLogout }) => {
   const menuItems = [
     { id: 'messages', label: 'Mesajlar', icon: <Sprout size={20} /> },
@@ -38,14 +40,14 @@ const Sidebar = ({ activeTab, setActiveTab, currentUser, onLogout }) => {
       position: 'relative',
       zIndex: 10
     }}>
-      <div style={{
+      <div className="sidebar-brand" style={{
         display: 'flex',
         alignItems: 'center',
         gap: '12px',
         marginBottom: '48px',
         padding: '0 8px'
       }}>
-        <div style={{
+        <div className="brand-logo" style={{
           backgroundColor: 'var(--primary-light)',
           padding: '8px',
           borderRadius: '12px',
@@ -53,9 +55,11 @@ const Sidebar = ({ activeTab, setActiveTab, currentUser, onLogout }) => {
           alignItems: 'center',
           justifyContent: 'center'
         }}>
-          <Leaf size={24} color="var(--primary-dark)" fill="var(--primary-dark)" />
+          <img src={logoUrl} alt="Koopilot" style={{ width: "24px", height: "24px", objectFit: "contain" }} />
         </div>
-        <h1 style={{ color: 'var(--sidebar-text)', fontSize: '24px', margin: 0 }}>Koopilot</h1>
+        <div className="brand-text">
+          <h1 style={{ color: 'var(--sidebar-text)', fontSize: '24px', margin: 0 }}>Koopilot</h1>
+        </div>
       </div>
       <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto' }}>
         {menuItems.map((item) => (
