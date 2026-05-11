@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback, useState, useEffect, useRef } from "react";
 import {
   getOrders,
   approveOrder,
@@ -25,23 +25,56 @@ const OrderPanel = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [activeRecipe, setActiveRecipe] = useState(null); // Track which order's recipe is open
   const { notify, confirm } = useNotifications();
-  const fetchOrders = async () => {
+  const knownOrderIdsRef = useRef(new Set());
+  const hasLoadedOrdersRef = useRef(false);
+
+  const fetchOrders = useCallback(async ({ silent = false, announceNew = false } = {}) => {
+    if (!silent) setIsLoading(true);
     try {
       const data = await getOrders();
-      setOrders(data.reverse());
+      const sortedOrders = [...data].sort((a, b) => {
+        const dateDiff = new Date(b.order_date) - new Date(a.order_date);
+        return dateDiff || b.id - a.id;
+      });
+      const newOrders = sortedOrders.filter(
+        (order) => !knownOrderIdsRef.current.has(order.id),
+      );
+
+      if (announceNew && hasLoadedOrdersRef.current && newOrders.length > 0) {
+        const latestOrder = newOrders[0];
+        notify({
+          type: "success",
+          title: newOrders.length === 1 ? "Yeni sipariş geldi" : `${newOrders.length} yeni sipariş geldi`,
+          message:
+            newOrders.length === 1
+              ? `Sipariş #${latestOrder.id} ${latestOrder.customer_name || "müşteri"} adına panele düştü.`
+              : `En son sipariş #${latestOrder.id} ${latestOrder.customer_name || "müşteri"} adına oluşturuldu.`,
+        });
+      }
+
+      knownOrderIdsRef.current = new Set(sortedOrders.map((order) => order.id));
+      hasLoadedOrdersRef.current = true;
+      setOrders(sortedOrders);
     } catch (error) {
       console.error("Siparişler çekilemedi:", error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [notify]);
+
   useEffect(() => {
     fetchOrders();
-  }, []);
+    const refreshInterval = window.setInterval(() => {
+      fetchOrders({ silent: true, announceNew: true });
+    }, 8000);
+
+    return () => window.clearInterval(refreshInterval);
+  }, [fetchOrders]);
+
   const handleApprove = async (id) => {
     try {
       await approveOrder(id);
-      fetchOrders();
+      fetchOrders({ silent: true });
       notify({
         type: "success",
         title: "Sipariş onaylandı",
@@ -68,7 +101,7 @@ const OrderPanel = () => {
 
     try {
       await rejectOrder(id);
-      fetchOrders();
+      fetchOrders({ silent: true });
       notify({
         type: "info",
         title: "Sipariş reddedildi",
@@ -94,7 +127,7 @@ const OrderPanel = () => {
 
     try {
       await deleteOrder(id);
-      fetchOrders();
+      fetchOrders({ silent: true });
       notify({
         type: "success",
         title: "Sipariş silindi",
