@@ -279,17 +279,17 @@ def get_daily_summary(db: Session = Depends(get_db)):
             "type": "positive"
         })
 
-    # Insight 3: Popularity
+    # Insight 3: Demand signal
     insights.append({
-        "title": "Haftalık Trend",
-        "text": "Doğal bal ve zeytinyağı kategorisinde sorgu hacmi geçen haftaya göre arttı.",
+        "title": "Talep Sinyali",
+        "text": "Bugünkü mesaj dağılımı sipariş, stok ve kargo niyetlerine ayrılarak operasyon panelinde takip ediliyor.",
         "type": "info"
     })
     
     # Insight 4: Efficiency
     insights.append({
         "title": "Operasyonel Verimlilik",
-        "text": "AI ajanımız gelen mesajların %94'ünü başarıyla sınıflandırdı.",
+        "text": "AI ajanı gelen mesajları yapılandırılmış aksiyonlara dönüştürerek manuel takip yükünü azaltmaya yardımcı oluyor.",
         "type": "success"
     })
 

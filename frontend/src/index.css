@@ -634,7 +634,37 @@ input:focus, textarea:focus {
   .login-hero-secondary {
     width: 100%;
   }
+  .login-access-card {
+    padding: 20px;
   }
+}
+
+.hover-scale {
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+.hover-scale:hover {
+  transform: scale(1.06);
+}
+.spin-animation {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(1.28);
+  }
+}
 
 /* Modal Styles - Tam Ekran Zorlama */
 .modal-overlay {
