@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Inter:wght@400;500;600&family=Outfit:wght@600&display=swap");
 :root {
     --primary-dark: #1b4332;
     --primary-mid: #2d6a4f;
@@ -207,7 +207,8 @@ body {
     border-radius: 999px;
     color: var(--primary-mid);
     background-color: color-mix(in srgb, var(--surface) 72%, transparent);
-    font-weight: 800;
+    font-family: "Fredoka", sans-serif;
+    font-weight: 700;
 }
 .login-brand-mark span {
     width: 32px;

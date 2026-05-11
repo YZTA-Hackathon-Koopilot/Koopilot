@@ -58,7 +58,7 @@ const Sidebar = ({ activeTab, setActiveTab, currentUser, onLogout }) => {
           <img src={logoUrl} alt="Koopilot" style={{ width: "24px", height: "24px", objectFit: "contain" }} />
         </div>
         <div className="brand-text">
-          <h1 style={{ color: 'var(--sidebar-text)', fontSize: '24px', margin: 0 }}>Koopilot</h1>
+          <h1 style={{ color: 'var(--sidebar-text)', fontSize: '24px', margin: 0, fontFamily: '"Fredoka", sans-serif', fontWeight: 600 }}>Koopilot</h1>
         </div>
       </div>
       <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto' }}>

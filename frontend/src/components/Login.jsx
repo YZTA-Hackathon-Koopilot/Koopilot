@@ -305,7 +305,7 @@ const Login = ({ onLogin }) => {
 
       <footer className="login-footer">
         <div>
-          <strong>Koopilot</strong>
+          <strong style={{ fontFamily: '"Fredoka", sans-serif', fontSize: '16px' }}>Koopilot</strong>
           <span>AI destekli kooperatif operasyon asistanı</span>
         </div>
         <nav aria-label="İlgili bağlantılar">
