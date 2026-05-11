@@ -42,7 +42,7 @@ Kadın kooperatifleri ve küçük e-ticaret yapan KOBİ'ler, sipariş yönetimin
 
 | Sorun | Etki |
 |-------|------|
-| Siparişler WhatsApp'tan alınıyor | Kayıp siparişler, unutulan detaylar |
+| Siparişler WhatsApp ve Telegram'dan alınıyor | Kayıp siparişler, unutulan detaylar |
 | Stok takibi Excel/defter ile yapılıyor | Stokta olmayan ürün satışa sunuluyor |
 | "Kargom nerede?" soruları tek tek yanıtlanıyor | Saatler süren manuel iş yükü |
 | Hangi ürünün çok gittiği bilinmiyor | Üretim planlaması yapılamıyor |
