@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/koopilot-banner.png" alt="Koopilot Banner" width="800"/>
+  <img src="docs/branding/arkas%C4%B1%20beyaz%20yaz%C4%B1l%C4%B1%20logo.png" alt="Koopilot Banner" width="800"/>
 </p>
 
 <h1 align="center">🤖 Koopilot</h1>
