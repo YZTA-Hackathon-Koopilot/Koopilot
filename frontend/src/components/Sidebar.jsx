@@ -60,6 +60,7 @@ const Sidebar = ({ activeTab, setActiveTab, currentUser, onLogout }) => {
           <button
             key={item.id}
             onClick={() => setActiveTab(item.id)}
+            className="sidebar-nav-item"
             style={{
               width: '100%',
               display: 'flex',

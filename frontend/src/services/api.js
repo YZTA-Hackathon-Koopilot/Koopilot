@@ -128,4 +128,12 @@ export const getWhatsAppStatus = async () => {
   const response = await api.get('/integrations/whatsapp/status');
   return response.data;
 };
+export const getInventoryInsights = async () => {
+  const response = await api.get('/inventory/insights');
+  return response.data;
+};
+export const getCampaignRecommendation = async (product) => {
+  const response = await api.post('/ai/campaign-recommendation', product);
+  return response.data;
+};
 export default api;

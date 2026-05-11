@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import List
+from datetime import datetime, timedelta
 import io
 import csv
 from database import get_db
@@ -13,6 +15,60 @@ router = APIRouter(
     tags=["Inventory"],
     dependencies=[Depends(get_current_user)]
 )
+
+@router.get("/insights", summary="Son 7 günün satış analizini ve ürün performansını getir")
+def get_inventory_insights(db: Session = Depends(get_db)):
+    seven_days_ago = datetime.utcnow() - timedelta(days=7)
+    
+    # En çok satan 5 ürün (Onaylanmış siparişlerden)
+    best_sellers = db.query(
+        models.Product.id,
+        models.Product.name,
+        models.Product.category,
+        models.Product.price,
+        func.sum(models.OrderItem.quantity).label("total_sold")
+    ).join(models.OrderItem, models.Product.id == models.OrderItem.product_id)\
+     .join(models.Order, models.Order.id == models.OrderItem.order_id)\
+     .filter(models.Order.order_date >= seven_days_ago)\
+     .filter(models.Order.status == models.OrderStatus.APPROVED)\
+     .group_by(models.Product.id)\
+     .order_by(func.sum(models.OrderItem.quantity).desc())\
+     .limit(5).all()
+     
+    # Hiç satılmayan 5 ürün (Stokta olan ama son 7 günde onaylı siparişi olmayan)
+    sold_product_ids = db.query(models.OrderItem.product_id)\
+        .join(models.Order, models.Order.id == models.OrderItem.order_id)\
+        .filter(models.Order.order_date >= seven_days_ago)\
+        .filter(models.Order.status == models.OrderStatus.APPROVED)\
+        .distinct().all()
+    
+    sold_ids = [r[0] for r in sold_product_ids]
+    
+    non_sellers = db.query(models.Product)\
+        .filter(~models.Product.id.in_(sold_ids))\
+        .filter(models.Product.stock > 0)\
+        .limit(5).all()
+        
+    return {
+        "best_sellers": [
+            {
+                "id": p[0], 
+                "name": p[1], 
+                "category": p[2], 
+                "price": p[3], 
+                "total_sold": p[4]
+            } for p in best_sellers
+        ],
+        "non_sellers": [
+            {
+                "id": p.id, 
+                "name": p.name, 
+                "category": p.category, 
+                "price": p.price,
+                "stock": p.stock
+            } for p in non_sellers
+        ]
+    }
 
 @router.get("", response_model=List[schemas.ProductResponse], summary="Mevcut ürünleri ve stok durumlarını listele")
 def get_inventory(db: Session = Depends(get_db)):

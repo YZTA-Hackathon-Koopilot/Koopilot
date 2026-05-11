@@ -303,3 +303,16 @@ def get_daily_summary(db: Session = Depends(get_db)):
         "insights": insights,
         "summary_text": f"Bugün toplam {total_messages} mesaj alındı. {low_stock_count} ürün için aksiyon almanız öneriliyor."
     }
+    
+@router.post("/campaign-recommendation", summary="Satılmayan ürün için kampanya önerisi al")
+def get_campaign_recommendation(request: schemas.ProductResponse, db: Session = Depends(get_db)):
+    from ai_agent import generate_campaign_suggestion
+    try:
+        recommendation = generate_campaign_suggestion(
+            product_name=request.name,
+            price=request.price,
+            stock=request.stock
+        )
+        return {"recommendation": recommendation}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Öneri oluşturulamadı: {str(e)}")

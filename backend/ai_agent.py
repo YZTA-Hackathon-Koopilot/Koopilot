@@ -186,3 +186,27 @@ def analyze_message_with_ai(message: str, company_profile: str = "Koopilot - KOB
             )
 
         return analyze_message_locally(message)
+
+
+def generate_campaign_suggestion(product_name: str, price: float, stock: float) -> str:
+    client = get_client()
+    prompt = f"""
+    Sen 'Koopilot' adlı AI asistanısın. 
+    Elimizde son 7 gündür hiç satılmayan bir ürün var:
+    Ürün Adı: {product_name}
+    Mevcut Fiyat: {price} TL
+    Stok Durumu: {stock}
+
+    Lütfen bu ürün için profesyonel, ilgi çekici ve kooperatif ruhuna uygun bir kampanya/indirim kurgusu hazırla.
+    Kısa, öz ve etkileyici bir metin olsun. 
+    İndirim oranı önerisi (%10, %20 vb.) ve neden bu ürünü almaları gerektiğine dair bir cümle ekle.
+    """
+    
+    if not client:
+        return f"Kampanya Önerisi ({product_name}): %15 indirimle stokları eritebiliriz! '{product_name}' sağlıklı ve doğal yapısıyla sofraların vazgeçilmezi."
+
+    response = client.models.generate_content(
+        model='gemini-2.0-flash',
+        contents=prompt
+    )
+    return response.text.strip()

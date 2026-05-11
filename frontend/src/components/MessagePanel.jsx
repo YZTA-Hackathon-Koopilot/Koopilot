@@ -55,10 +55,27 @@ const MessagePanel = ({ messages, setMessages, isLoading, setIsLoading, sessionI
         alignItems: 'center',
         gap: '12px'
       }}>
-        <div>
-          <h3 style={{ margin: 0, fontSize: '16px' }}>Koopilot Ajan</h3>
-          <div style={{ fontSize: '12px', color: 'var(--text-light)' }}>
-            Oturum: {sessionId.replace('session_', '').slice(0, 8)}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div className="floating-bot" style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '50%',
+            backgroundColor: 'var(--primary-light)',
+            color: 'var(--primary-dark)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer'
+          }}>
+            <Bot size={24} />
+          </div>
+          <div>
+            <h3 style={{ margin: 0, fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              Koopilot Ajan
+            </h3>
+            <div style={{ fontSize: '12px', color: 'var(--text-light)' }}>
+              Oturum: {sessionId.replace('session_', '').slice(0, 8)}
+            </div>
           </div>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
