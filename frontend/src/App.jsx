@@ -196,7 +196,7 @@ function App() {
       case 'calendar':
         return <CalendarPanel />;
       case 'settings':
-        return <SettingsPanel currentUser={currentUser} onUserUpdate={setCurrentUser} />;
+        return <SettingsPanel currentUser={currentUser} onUserUpdate={setCurrentUser} onLogout={handleLogout} />;
       default:
         return (
           <MessagePanel

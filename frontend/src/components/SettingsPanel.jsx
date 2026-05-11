@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { CheckCircle, KeyRound, Save, User } from 'lucide-react';
+import { CheckCircle, KeyRound, Save, User, LogOut } from 'lucide-react';
 import { changePassword } from '../services/api';
 
-const SettingsPanel = ({ currentUser, onUserUpdate }) => {
+const SettingsPanel = ({ currentUser, onUserUpdate, onLogout }) => {
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -52,9 +52,9 @@ const SettingsPanel = ({ currentUser, onUserUpdate }) => {
       </h2>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-        <div className="glass-card" style={{ padding: '32px', borderRadius: '24px' }}>
+        <div className="glass-card" style={{ padding: '32px', borderRadius: '24px', display: 'flex', flexDirection: 'column' }}>
           <h3 style={{ margin: '0 0 24px', fontSize: '18px', color: 'var(--text-dark)' }}>Profil Bilgileri</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', flex: 1 }}>
             <div>
               <label style={{ display: 'block', fontSize: '14px', color: 'var(--text-light)', marginBottom: '8px' }}>Ad Soyad</label>
               <div style={{ padding: '16px', backgroundColor: 'var(--surface)', borderRadius: '12px', color: 'var(--text-dark)', fontWeight: 600 }}>
@@ -74,6 +74,36 @@ const SettingsPanel = ({ currentUser, onUserUpdate }) => {
               </div>
             </div>
           </div>
+          
+          <button 
+            onClick={onLogout}
+            style={{
+              marginTop: '32px',
+              padding: '16px',
+              borderRadius: '12px',
+              backgroundColor: 'rgba(230, 57, 70, 0.1)',
+              color: 'var(--error)',
+              border: '1px solid rgba(230, 57, 70, 0.2)',
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--error)';
+              e.currentTarget.style.color = 'white';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(230, 57, 70, 0.1)';
+              e.currentTarget.style.color = 'var(--error)';
+            }}
+          >
+            <LogOut size={20} />
+            {currentUser?.email === "demo@koopilot.io" ? "Demodan Çık" : "Oturumu Kapat"}
+          </button>
         </div>
 
         <div className="glass-card" style={{ padding: '32px', borderRadius: '24px' }}>
