@@ -17,7 +17,10 @@ const fallbackChannels = {
     live: false,
     label: 'Token tanımlı değil',
     honest_note: 'Telegram canlı kanal demosu için TELEGRAM_BOT_TOKEN tanımlanmalı.',
-    webhook_url: '/integrations/telegram/webhook'
+    webhook_url: '/integrations/telegram/webhook',
+    expected_webhook_url: 'https://koopilot-backend.onrender.com/integrations/telegram/webhook',
+    required_env: ['TELEGRAM_BOT_TOKEN', 'TELEGRAM_WEBHOOK_SECRET', 'PUBLIC_BACKEND_URL'],
+    implemented: ['Webhook ile gerçek Telegram mesajı alma', 'Gemini AI analiz hattına aktarma', 'Kullanıcıya Telegram üzerinden cevap gönderme']
   },
   web_panel: {
     name: 'Web Panel Test Akışı',
@@ -129,6 +132,31 @@ const ChannelCard = ({ title, channel, icon, tone }) => (
             </code>
           ))}
         </div>
+      </div>
+    )}
+
+    {(channel.bot_username || channel.expected_webhook_url || channel.pending_update_count !== undefined || channel.last_error_message) && (
+      <div style={{
+        display: 'grid',
+        gap: '8px',
+        padding: '12px',
+        borderRadius: '12px',
+        backgroundColor: 'var(--surface-muted)',
+        border: '1px solid var(--border-color)',
+        fontSize: '13px'
+      }}>
+        {channel.bot_username && (
+          <div><strong>Bot:</strong> @{channel.bot_username}</div>
+        )}
+        {channel.expected_webhook_url && (
+          <div style={{ wordBreak: 'break-word' }}><strong>Beklenen webhook:</strong> {channel.expected_webhook_url}</div>
+        )}
+        {channel.pending_update_count !== undefined && channel.pending_update_count !== null && (
+          <div><strong>Bekleyen update:</strong> {channel.pending_update_count}</div>
+        )}
+        {channel.last_error_message && (
+          <div style={{ color: 'var(--error)' }}><strong>Son Telegram hatası:</strong> {channel.last_error_message}</div>
+        )}
       </div>
     )}
   </section>

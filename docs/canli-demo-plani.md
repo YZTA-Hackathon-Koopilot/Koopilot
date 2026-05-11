@@ -40,6 +40,8 @@ Environment variables:
 ```env
 GEMINI_API_KEY=...
 TELEGRAM_BOT_TOKEN=...
+TELEGRAM_WEBHOOK_SECRET=uzun-rastgele-bir-deger
+PUBLIC_BACKEND_URL=https://koopilot-backend.onrender.com
 WHATSAPP_ACCESS_TOKEN=
 WHATSAPP_PHONE_NUMBER_ID=
 WHATSAPP_VERIFY_TOKEN=
@@ -114,15 +116,58 @@ Netlify için SPA refresh desteği gerekiyorsa `frontend/public/_redirects` dosy
 
 ## Telegram Webhook Kurulumu
 
-1. BotFather üzerinden bot oluştur.
-2. Bot token'ı Render'da `TELEGRAM_BOT_TOKEN` olarak ekle.
-3. Backend deploy olduktan sonra webhook'u kur:
+Telegram Bot API resmi olarak webhook modunda HTTPS URL'e update gönderir. `secret_token` verilirse Telegram her webhook isteğinde `X-Telegram-Bot-Api-Secret-Token` header'ı yollar; backend bu değeri doğrular.
 
-```bash
-curl "https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook?url=https://<render-service>.onrender.com/integrations/telegram/webhook"
+1. Telegram'da resmi `@BotFather` hesabını aç.
+2. `/newbot` yaz.
+3. Bot adı ver: `Koopilot Demo`
+4. Bot kullanıcı adı ver. Sonu `bot` ile bitmeli, örnek: `koopilot_demo_bot`.
+5. BotFather'ın verdiği token'ı kopyala.
+6. Render > `koopilot-backend` > **Environment** bölümüne ekle:
+
+```env
+TELEGRAM_BOT_TOKEN=<BotFather token>
+TELEGRAM_WEBHOOK_SECRET=<tahmin edilmesi zor rastgele metin>
+PUBLIC_BACKEND_URL=https://koopilot-backend.onrender.com
 ```
 
-4. Telegram botuna demo mesajı at:
+7. Render'da **Manual Deploy > Deploy latest commit** yap.
+8. Deploy bitince token ve webhook durumunu kontrol et:
+
+```bash
+curl https://koopilot-backend.onrender.com/integrations/telegram/status
+```
+
+9. Webhook'u backend üzerinden kur:
+
+```bash
+curl -X POST "https://koopilot-backend.onrender.com/integrations/telegram/setup-webhook?drop_pending_updates=true"
+```
+
+Alternatif olarak Telegram API'ye direkt de kurulabilir:
+
+```bash
+curl -X POST "https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://koopilot-backend.onrender.com/integrations/telegram/webhook","secret_token":"<TELEGRAM_WEBHOOK_SECRET>","drop_pending_updates":true,"allowed_updates":["message","edited_message"]}'
+```
+
+10. Webhook durumunu tekrar kontrol et:
+
+```bash
+curl https://koopilot-backend.onrender.com/integrations/telegram/status
+```
+
+Beklenen kritik alanlar:
+
+```text
+token_configured: true
+webhook_configured: true
+webhook_matches_expected: true
+```
+
+11. Telegram botuna `/start` yaz.
+12. Ardından demo mesajı at:
 
 ```text
 Merhaba, ben Ayşe Yılmaz. 05551234567.
@@ -135,11 +180,13 @@ Beklenen sonuç:
 - Bot cevap döner.
 - Backend'de mesaj loglanır.
 - Sipariş taslağı panelde görünür.
+- UI'daki **Kanallar** sayfasında Telegram durumu “Canlı bağlı” görünür.
 
 ## Demo Sırasında Dikkat
 
 - Render free servis uykuya geçebilir; demo başlamadan 2-3 dakika önce `/health` ve `/docs` açılarak uyandırılmalı.
-- Telegram token yoksa webhook yine analiz sonucunu JSON döner ama Telegram'a cevap göndermez.
+- Telegram token yoksa webhook analiz sonucunu JSON dönebilir ama Telegram'a gerçek cevap göndermez.
+- Telegram tokenı Render env'e girildikten sonra mutlaka redeploy gerekir.
 - WhatsApp gerçek API canlı bağlı değilse bu açıkça söylenmeli; UI'daki Kanallar sayfasında “Canlı bağlantı yok” durumu gösterilmeli.
 - Mesajlar sayfasındaki web panel test akışı, WhatsApp mesajının gerçek kanaldan geldiği izlenimi verilmeden kullanılmalı.
 - Canlı demo patlarsa video ve lokal çalışan demo yedek plan olarak hazır olmalı.

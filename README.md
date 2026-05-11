@@ -233,6 +233,7 @@ python -m pip install -r requirements.txt
 cp .env.example .env
 # .env dosyasını aç ve GEMINI_API_KEY değerini gir
 # Telegram gerçek kanal demosu için TELEGRAM_BOT_TOKEN değerini de ekleyebilirsin
+# Telegram webhook güvenliği için TELEGRAM_WEBHOOK_SECRET değerini rastgele bir metin olarak belirle
 # WhatsApp altyapısı için WHATSAPP_* değerleri .env.example içinde yer alır; token yoksa canlı WhatsApp bağlı değildir
 
 # 5. Veritabanını başlat (demo verileriyle)
@@ -304,7 +305,7 @@ Install Command: npm install
 Telegram webhook kurulumu:
 
 ```bash
-curl "https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook?url=https://koopilot-backend.onrender.com/integrations/telegram/webhook"
+curl -X POST "https://koopilot-backend.onrender.com/integrations/telegram/setup-webhook?drop_pending_updates=true"
 ```
 
 Detaylı canlı demo planı için: [`docs/canli-demo-plani.md`](docs/canli-demo-plani.md)
@@ -318,6 +319,9 @@ Detaylı canlı demo planı için: [`docs/canli-demo-plani.md`](docs/canli-demo-
 | `GET` | `/health` | Canlı servis sağlık kontrolü |
 | `POST` | `/ai/analyze-message` | Müşteri mesajını AI ile analiz et, niyet çıkar, aksiyon öner |
 | `POST` | `/integrations/telegram/webhook` | Telegram mesajlarını Koopilot AI ajanına aktar |
+| `GET` | `/integrations/telegram/status` | Telegram bot ve webhook durumunu göster |
+| `POST` | `/integrations/telegram/setup-webhook` | Telegram webhook'unu canlı backend'e bağla |
+| `POST` | `/integrations/telegram/delete-webhook` | Telegram webhook'unu kaldır |
 | `GET` | `/integrations/channels` | Mesaj kanallarının gerçek bağlantı durumunu listele |
 | `GET` | `/integrations/whatsapp/status` | WhatsApp entegrasyon durumunu göster |
 | `GET` | `/integrations/whatsapp/webhook` | WhatsApp Business webhook doğrulaması |
@@ -381,7 +385,7 @@ YZTA-Hackathon-Koopilot/
 | Öncelik | Geliştirme | Açıklama |
 |---------|-----------|----------|
 | 🟡 | WhatsApp Business API | Backend adaptörü hazır; canlı bağlantı için Meta token/telefon kurulumu gerekir |
-| 🔴 | Telegram Bot API | Telegram kanalı entegrasyonu |
+| 🟢 | Telegram Bot API | Webhook altyapısı hazır; BotFather tokenı tanımlanınca gerçek kanal demosu çalışır |
 | 🟡 | Gerçek Kargo API | Aras, Yurtiçi, MNG kargo entegrasyonu |
 | 🟡 | Talep Tahmini | Geçmiş siparişlere dayalı ürün talep öngörüsü |
 | 🟢 | Çoklu Kooperatif Desteği | Birden fazla kooperatifin tek panelden yönetimi |

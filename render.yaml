@@ -12,3 +12,7 @@ services:
         sync: false
       - key: TELEGRAM_BOT_TOKEN
         sync: false
+      - key: TELEGRAM_WEBHOOK_SECRET
+        generateValue: true
+      - key: PUBLIC_BACKEND_URL
+        value: https://koopilot-backend.onrender.com
