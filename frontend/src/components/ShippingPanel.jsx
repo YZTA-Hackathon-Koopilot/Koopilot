@@ -5,6 +5,8 @@ import {
   getActiveShipments,
   updateShippingStatus,
 } from "../services/api";
+import { useNotifications } from "../context/useNotifications";
+import { getApiErrorMessage } from "../utils/display";
 import {
   Truck,
   Search,
@@ -23,6 +25,7 @@ const ShippingPanel = () => {
   const [error, setError] = useState(null);
   const [activeShipments, setActiveShipments] = useState([]);
   const [selectedShipment, setSelectedShipment] = useState(null);
+  const { notify } = useNotifications();
 
   const fetchActiveShipments = async () => {
     setIsLoading(true);
@@ -50,6 +53,11 @@ const ShippingPanel = () => {
       setSelectedShipment(data);
     } catch {
       setError("Sipariş bulunamadı veya bir hata oluştu.");
+      notify({
+        type: "warning",
+        title: "Kargo bulunamadı",
+        message: `Sipariş #${orderId} için kargo kaydı bulunamadı.`,
+      });
       setSelectedShipment(null);
     } finally {
       setIsLoading(false);
@@ -60,8 +68,17 @@ const ShippingPanel = () => {
       const updated = await updateShippingStatus(id, newStatus);
       setSelectedShipment(updated);
       fetchActiveShipments();
-    } catch {
-      alert("Durum güncellenirken bir hata oluştu.");
+      notify({
+        type: "success",
+        title: "Kargo durumu güncellendi",
+        message: `Sipariş #${id} durumu "${newStatus}" olarak değiştirildi.`,
+      });
+    } catch (error) {
+      notify({
+        type: "error",
+        title: "Kargo güncellenemedi",
+        message: getApiErrorMessage(error, "Durum güncellenirken bir hata oluştu."),
+      });
     }
   };
   return (

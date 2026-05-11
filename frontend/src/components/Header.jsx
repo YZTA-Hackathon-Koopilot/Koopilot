@@ -1,15 +1,35 @@
 import { useState, useEffect, useRef } from 'react';
 import { Bell, User, Search, AlertTriangle, Moon, Sun } from 'lucide-react';
 import { getInventoryAlerts } from '../services/api';
+import { useNotifications } from '../context/useNotifications';
 const Header = ({ title, searchTerm, setSearchTerm, theme, setTheme, currentUser, onOpenProfile, onOpenInventory }) => {
   const [alerts, setAlerts] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const notificationRef = useRef(null);
+  const knownAlertIdsRef = useRef(new Set());
+  const hasPrimedAlertsRef = useRef(false);
+  const { notify } = useNotifications();
 
   useEffect(() => {
     const fetchAlerts = async () => {
       try {
         const data = await getInventoryAlerts();
+        const nextIds = new Set(data.map((item) => item.id));
+        if (hasPrimedAlertsRef.current) {
+          data
+            .filter((item) => !knownAlertIdsRef.current.has(item.id))
+            .forEach((item) => {
+              notify({
+                type: item.stock <= 0 ? 'error' : 'warning',
+                title: item.stock <= 0 ? 'Stok tükendi' : 'Düşük stok uyarısı',
+                message: `${item.name} için kalan stok: ${item.stock} ${item.unit}`,
+                duration: 6500,
+              });
+            });
+        } else {
+          hasPrimedAlertsRef.current = true;
+        }
+        knownAlertIdsRef.current = nextIds;
         setAlerts(data);
       } catch (error) {
         console.error('Bildirimler alınamadı:', error);
@@ -19,7 +39,7 @@ const Header = ({ title, searchTerm, setSearchTerm, theme, setTheme, currentUser
     fetchAlerts();
     const interval = setInterval(fetchAlerts, 60000); // Check every minute
     return () => clearInterval(interval);
-  }, []);
+  }, [notify]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {

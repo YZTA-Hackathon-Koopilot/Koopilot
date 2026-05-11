@@ -7,6 +7,8 @@ import {
   createProduct,
   uploadInventory,
 } from "../services/api";
+import { useNotifications } from "../context/useNotifications";
+import { getApiErrorMessage } from "../utils/display";
 import {
   Package,
   AlertTriangle,
@@ -37,6 +39,7 @@ const InventoryPanel = ({ searchTerm }) => {
   });
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
+  const { notify } = useNotifications();
 
   const filteredInventory = inventory.filter(
     (item) =>
@@ -89,13 +92,27 @@ const InventoryPanel = ({ searchTerm }) => {
     try {
       if (editingProduct) {
         await updateProduct(editingProduct.id, formData);
+        notify({
+          type: "success",
+          title: "Ürün güncellendi",
+          message: `${formData.name} bilgileri kaydedildi.`,
+        });
       } else {
         await createProduct(formData);
+        notify({
+          type: "success",
+          title: "Ürün eklendi",
+          message: `${formData.name} stok listesine eklendi.`,
+        });
       }
       setIsModalOpen(false);
       fetchInventory();
-    } catch {
-      alert("Kaydedilirken bir hata oluştu.");
+    } catch (error) {
+      notify({
+        type: "error",
+        title: "Ürün kaydedilemedi",
+        message: getApiErrorMessage(error, "Kaydedilirken bir hata oluştu."),
+      });
     }
   };
 
@@ -106,16 +123,20 @@ const InventoryPanel = ({ searchTerm }) => {
     setIsUploading(true);
     try {
       const result = await uploadInventory(file);
-      alert(
-        `Yükleme başarılı! ${result.creations} yeni ürün eklendi, ${result.updates} ürün güncellendi.`,
-      );
+      notify({
+        type: "success",
+        title: "Toplu yükleme tamamlandı",
+        message: `${result.creations} yeni ürün eklendi, ${result.updates} ürün güncellendi.`,
+      });
       fetchInventory();
     } catch (error) {
       console.error("Yükleme hatası:", error);
-      alert(
-        "Dosya yüklenirken bir hata oluştu: " +
-          (error.response?.data?.detail || error.message),
-      );
+      notify({
+        type: "error",
+        title: "Dosya yüklenemedi",
+        message: getApiErrorMessage(error, "Dosya yüklenirken bir hata oluştu."),
+        duration: 7000,
+      });
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";

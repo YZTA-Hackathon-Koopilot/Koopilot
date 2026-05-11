@@ -6,6 +6,8 @@ import {
   deleteOrder,
 } from "../services/api";
 import { OrderSkeleton } from "./Skeleton";
+import { useNotifications } from "../context/useNotifications";
+import { getApiErrorMessage } from "../utils/display";
 import {
   Check,
   X,
@@ -22,6 +24,7 @@ const OrderPanel = () => {
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeRecipe, setActiveRecipe] = useState(null); // Track which order's recipe is open
+  const { notify, confirm } = useNotifications();
   const fetchOrders = async () => {
     try {
       const data = await getOrders();
@@ -39,32 +42,70 @@ const OrderPanel = () => {
     try {
       await approveOrder(id);
       fetchOrders();
+      notify({
+        type: "success",
+        title: "Sipariş onaylandı",
+        message: `Sipariş #${id} stoktan düşülerek onaylandı.`,
+      });
     } catch (error) {
-      alert(error.response?.data?.detail || "Onaylanırken bir hata oluştu.");
+      notify({
+        type: "error",
+        title: "Sipariş onaylanamadı",
+        message: getApiErrorMessage(error, "Onaylanırken bir hata oluştu."),
+        duration: 7000,
+      });
     }
   };
   const handleReject = async (id) => {
-    if (!window.confirm("Bu siparişi reddetmek istediğinize emin misiniz?"))
-      return;
+    const shouldReject = await confirm({
+      type: "warning",
+      title: "Sipariş reddedilsin mi?",
+      message: `Sipariş #${id} reddedilecek. Bu işlem sipariş durumunu değiştirecek.`,
+      confirmText: "Reddet",
+      cancelText: "Vazgeç",
+    });
+    if (!shouldReject) return;
+
     try {
       await rejectOrder(id);
       fetchOrders();
+      notify({
+        type: "info",
+        title: "Sipariş reddedildi",
+        message: `Sipariş #${id} reddedildi.`,
+      });
     } catch (error) {
-      alert(error.response?.data?.detail || "Reddedilirken bir hata oluştu.");
+      notify({
+        type: "error",
+        title: "Sipariş reddedilemedi",
+        message: getApiErrorMessage(error, "Reddedilirken bir hata oluştu."),
+      });
     }
   };
   const handleDelete = async (id) => {
-    if (
-      !window.confirm(
-        "Bu siparişi kalıcı olarak silmek istediğinize emin misiniz?",
-      )
-    )
-      return;
+    const shouldDelete = await confirm({
+      type: "error",
+      title: "Sipariş silinsin mi?",
+      message: `Sipariş #${id} kalıcı olarak silinecek.`,
+      confirmText: "Sil",
+      cancelText: "Vazgeç",
+    });
+    if (!shouldDelete) return;
+
     try {
       await deleteOrder(id);
       fetchOrders();
+      notify({
+        type: "success",
+        title: "Sipariş silindi",
+        message: `Sipariş #${id} panelden kaldırıldı.`,
+      });
     } catch (error) {
-      alert(error.response?.data?.detail || "Silinirken bir hata oluştu.");
+      notify({
+        type: "error",
+        title: "Sipariş silinemedi",
+        message: getApiErrorMessage(error, "Silinirken bir hata oluştu."),
+      });
     }
   };
   if (isLoading) return <OrderSkeleton />;
