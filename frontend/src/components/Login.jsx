@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Leaf, Lock, LogIn, Mail, User, UserPlus } from 'lucide-react';
+import { ArrowRight, Bot, CheckCircle2, Leaf, Lock, LogIn, Mail, MessageSquare, PackageCheck, Send, Truck, User, UserPlus } from 'lucide-react';
 
 const demoUser = {
   id: 'demo',
@@ -79,148 +79,134 @@ const Login = ({ onLogin }) => {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'linear-gradient(135deg, var(--bg-cream) 0%, var(--surface-soft) 100%)',
-      padding: '20px'
-    }}>
-      <div className="glass-card" style={{
-        width: '100%',
-        maxWidth: '440px',
-        padding: '40px',
-        borderRadius: '24px',
-        animation: 'fadeIn 0.5s ease-out'
-      }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '32px' }}>
-          <div style={{
-            backgroundColor: 'var(--primary-light)',
-            padding: '16px',
-            borderRadius: '20px',
-            marginBottom: '16px'
-          }}>
-            <Leaf size={40} color="var(--primary-dark)" fill="var(--primary-dark)" />
-          </div>
-          <h1 style={{ margin: '0 0 8px', color: 'var(--primary-dark)', fontSize: '28px', textAlign: 'center' }}>Koopilot</h1>
-          <p style={{ margin: 0, color: 'var(--text-light)', fontSize: '16px', textAlign: 'center' }}>
-            Kooperatif Personel Portalı
-          </p>
+    <div className="login-hero-shell">
+      <div className="login-scene" aria-hidden="true">
+        <div className="login-scene-rail rail-one" />
+        <div className="login-scene-rail rail-two" />
+        <div className="login-scene-card scene-message">
+          <div className="scene-card-kicker"><MessageSquare size={14} /> Gelen Mesaj</div>
+          <p>2 domates salçası ve 1 nar ekşisi istiyorum.</p>
+          <span>Telegram kanalı</span>
         </div>
-
-        {error && (
-          <div style={{
-            backgroundColor: 'rgba(230, 57, 70, 0.1)',
-            color: 'var(--error)',
-            padding: '12px 16px',
-            borderRadius: '12px',
-            marginBottom: '20px',
-            fontSize: '14px',
-            textAlign: 'center',
-            border: '1px solid rgba(230, 57, 70, 0.2)'
-          }}>
-            {error}
+        <div className="login-scene-card scene-agent">
+          <div className="scene-agent-icon"><Bot size={22} /></div>
+          <div>
+            <div className="scene-card-kicker">AI Analiz</div>
+            <p>Sipariş niyeti algılandı. Ürünler katalogla eşleşti.</p>
           </div>
-        )}
+        </div>
+        <div className="login-scene-card scene-order">
+          <div className="scene-card-kicker"><PackageCheck size={14} /> Sipariş Taslağı</div>
+          <div className="scene-product-row"><span>Domates Salçası</span><strong>2 kavanoz</strong></div>
+          <div className="scene-product-row"><span>Nar Ekşisi</span><strong>1 şişe</strong></div>
+          <div className="scene-status"><CheckCircle2 size={15} /> Stok uygun</div>
+        </div>
+        <div className="login-scene-card scene-reply">
+          <div className="scene-card-kicker"><Send size={14} /> Yanıt Taslağı</div>
+          <p>Ad, telefon ve açık adresinizi paylaşabilir misiniz?</p>
+        </div>
+        <div className="login-scene-card scene-shipping">
+          <Truck size={18} />
+          <span>Kargo soruları aynı akışta cevaplanır.</span>
+        </div>
+      </div>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {!isLoginMode && (
-            <div style={{ position: 'relative' }}>
-              <User size={20} color="var(--text-light)" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
-              <input
-                type="text"
-                placeholder="Ad Soyad"
-                value={formData.name}
-                onChange={(event) => setFormData({ ...formData, name: event.target.value })}
-                style={{ width: '100%', padding: '16px 16px 16px 48px', borderRadius: '16px' }}
-              />
+      <main className="login-hero-content">
+        <section className="login-copy" aria-label="Koopilot tanıtım">
+          <div className="login-brand-mark">
+            <span><Leaf size={24} fill="currentColor" /></span>
+            Koopilot
+          </div>
+          <h1>Kooperatifler için sakin, akıllı operasyon asistanı.</h1>
+          <p className="login-lead">
+            Müşteri mesajlarını sipariş taslağına, stok kontrolüne ve kargo yanıtına dönüştüren AI destekli panel.
+          </p>
+          <div className="login-signal-row">
+            <span><MessageSquare size={16} /> Mesaj analizi</span>
+            <span><PackageCheck size={16} /> Stok kontrolü</span>
+            <span><Truck size={16} /> Kargo takibi</span>
+          </div>
+          <div className="login-hero-actions">
+            <button type="button" className="login-hero-primary" onClick={ensureDemoUser}>
+              Demo’ya Başla <ArrowRight size={18} />
+            </button>
+            <a className="login-hero-secondary" href="https://t.me/koopilot_bot" target="_blank" rel="noreferrer">
+              Telegram Botunu Dene
+            </a>
+          </div>
+        </section>
+
+        <section className="login-access-card glass-card" aria-label="Koopilot giriş">
+          <div className="login-panel-header">
+            <div>
+              <h2>{isLoginMode ? 'Personel Girişi' : 'Yeni Personel'}</h2>
+              <p>{isLoginMode ? 'Demo hesabı kullanabilir veya kayıtlı hesabınızla girebilirsiniz.' : 'Yerel demo hesabınızı oluşturun.'}</p>
+            </div>
+            <div className="login-panel-mark"><Leaf size={20} fill="currentColor" /></div>
+          </div>
+
+          {error && (
+            <div className="login-error">
+              {error}
             </div>
           )}
 
-          <div style={{ position: 'relative' }}>
-            <Mail size={20} color="var(--text-light)" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
-            <input
-              type="email"
-              placeholder="E-posta Adresi"
-              value={formData.email}
-              onChange={(event) => setFormData({ ...formData, email: event.target.value })}
-              required
-              style={{ width: '100%', padding: '16px 16px 16px 48px', borderRadius: '16px' }}
-            />
-          </div>
+          <form onSubmit={handleSubmit} className="login-form">
+            {!isLoginMode && (
+              <label className="login-field">
+                <User size={19} />
+                <input
+                  type="text"
+                  placeholder="Ad Soyad"
+                  value={formData.name}
+                  onChange={(event) => setFormData({ ...formData, name: event.target.value })}
+                />
+              </label>
+            )}
 
-          <div style={{ position: 'relative' }}>
-            <Lock size={20} color="var(--text-light)" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
-            <input
-              type="password"
-              placeholder="Şifre"
-              value={formData.password}
-              onChange={(event) => setFormData({ ...formData, password: event.target.value })}
-              required
-              style={{ width: '100%', padding: '16px 16px 16px 48px', borderRadius: '16px' }}
-            />
-          </div>
+            <label className="login-field">
+              <Mail size={19} />
+              <input
+                type="email"
+                placeholder="E-posta Adresi"
+                value={formData.email}
+                onChange={(event) => setFormData({ ...formData, email: event.target.value })}
+                required
+              />
+            </label>
 
-          <button
-            type="submit"
-            style={{
-              width: '100%',
-              padding: '16px',
-              marginTop: '8px',
-              backgroundColor: 'var(--primary-mid)',
-              color: 'var(--on-primary)',
-              borderRadius: '16px',
-              fontSize: '16px',
-              fontWeight: 700,
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              gap: '8px',
-              boxShadow: '0 4px 12px rgba(45, 106, 79, 0.2)'
-            }}
-          >
-            {isLoginMode ? <><LogIn size={20} /> Giriş Yap</> : <><UserPlus size={20} /> Kayıt Ol</>}
+            <label className="login-field">
+              <Lock size={19} />
+              <input
+                type="password"
+                placeholder="Şifre"
+                value={formData.password}
+                onChange={(event) => setFormData({ ...formData, password: event.target.value })}
+                required
+              />
+            </label>
+
+            <button type="submit" className="login-submit">
+              {isLoginMode ? <><LogIn size={19} /> Giriş Yap</> : <><UserPlus size={19} /> Kayıt Ol</>}
+            </button>
+          </form>
+
+          <button type="button" onClick={ensureDemoUser} className="login-demo-button">
+            Demo ile Devam Et
           </button>
-        </form>
 
-        <button
-          type="button"
-          onClick={ensureDemoUser}
-          style={{
-            width: '100%',
-            marginTop: '12px',
-            padding: '14px',
-            backgroundColor: 'var(--surface-muted)',
-            color: 'var(--text-dark)',
-            border: '1px solid var(--border-color)',
-            borderRadius: '16px',
-            fontWeight: 700
-          }}
-        >
-          Demo ile Devam Et
-        </button>
-
-        <div style={{ marginTop: '24px', textAlign: 'center' }}>
           <button
             type="button"
             onClick={() => {
               setIsLoginMode(!isLoginMode);
               setError('');
             }}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--primary-mid)',
-              fontSize: '14px',
-              fontWeight: 700,
-              textDecoration: 'underline'
-            }}
+            className="login-mode-button"
           >
             {isLoginMode ? 'Personel hesabınız yok mu? Yeni kayıt oluşturun.' : 'Zaten hesabınız var mı? Giriş yapın.'}
           </button>
-        </div>
-      </div>
+        </section>
+      </main>
     </div>
   );
 };
