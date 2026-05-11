@@ -11,6 +11,7 @@ import CalendarPanel from './components/CalendarPanel';
 import Login from './components/Login';
 import SettingsPanel from './components/SettingsPanel';
 import { getCurrentUser, logoutUser, setAuthToken } from './services/api';
+import { toDisplayText } from './utils/display';
 
 const initialChatMessages = [
   { id: 1, type: 'ai', text: 'Merhaba! Ben Koopilot. Sipariş, stok veya kargo ile ilgili size nasıl yardımcı olabilirim? 🌿' }
@@ -80,7 +81,10 @@ function App() {
     localStorage.setItem(storageKeys.currentSession, chatSessionId);
     if (chatMessages.length <= 1) return;
 
-    const firstUserMessage = chatMessages.find((message) => message.type === 'user')?.text || 'Yeni sohbet';
+    const firstUserMessage = toDisplayText(
+      chatMessages.find((message) => message.type === 'user')?.text,
+      'Yeni sohbet'
+    );
     const historyItem = {
       id: chatSessionId,
       title: firstUserMessage.slice(0, 48),
@@ -151,7 +155,7 @@ function App() {
 
   const handleLoadChat = (historyItem) => {
     setChatSessionId(historyItem.id);
-    setChatMessages(historyItem.messages);
+    setChatMessages(Array.isArray(historyItem.messages) ? historyItem.messages : initialChatMessages);
     setActiveTab('messages');
   };
 

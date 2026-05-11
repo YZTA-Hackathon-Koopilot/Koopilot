@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, AlertCircle, ShoppingBag, History, Plus, Trash2, X, MessageCircle, Info } from 'lucide-react';
 import { analyzeMessage } from '../services/api';
+import { getApiErrorMessage, toDisplayText } from '../utils/display';
 const MessagePanel = ({ messages, setMessages, isLoading, setIsLoading, sessionId, chatHistory, onNewChat, onLoadChat, onDeleteChat }) => {
   const [input, setInput] = useState('');
   const [showHistory, setShowHistory] = useState(false);
@@ -21,16 +22,16 @@ const MessagePanel = ({ messages, setMessages, isLoading, setIsLoading, sessionI
       const aiMsg = { 
         id: Date.now() + 1, 
         type: 'ai', 
-        text: data.ai_analysis.ai_reply_draft,
+        text: toDisplayText(data?.ai_analysis?.ai_reply_draft, 'Yanıt üretilemedi.'),
         orderData: data.created_order,
         warnings: data.warnings
       };
       setMessages(prev => [...prev, aiMsg]);
-    } catch {
+    } catch (apiError) {
       setMessages(prev => [...prev, { 
         id: Date.now() + 1, 
         type: 'ai', 
-        text: 'Üzgünüm, bir hata oluştu. Lütfen tekrar deneyin.', 
+        text: getApiErrorMessage(apiError, 'Üzgünüm, bir hata oluştu. Lütfen tekrar deneyin.'),
         isError: true 
       }]);
     } finally {
@@ -194,9 +195,9 @@ const MessagePanel = ({ messages, setMessages, isLoading, setIsLoading, sessionI
               lineHeight: '1.6',
               whiteSpace: 'pre-wrap'
             }}>
-              {msg.text}
+              {toDisplayText(msg.text, '')}
               {}
-              {msg.warnings && msg.warnings.length > 0 && (
+              {Array.isArray(msg.warnings) && msg.warnings.length > 0 && (
                 <div style={{
                   marginTop: '12px',
                   padding: '10px',
@@ -208,7 +209,7 @@ const MessagePanel = ({ messages, setMessages, isLoading, setIsLoading, sessionI
                   fontSize: '13px'
                 }}>
                   <AlertCircle size={16} />
-                  <div>{msg.warnings.join(', ')}</div>
+                  <div>{msg.warnings.map((warning) => toDisplayText(warning)).filter(Boolean).join(', ')}</div>
                 </div>
               )}
               {}
@@ -227,7 +228,7 @@ const MessagePanel = ({ messages, setMessages, isLoading, setIsLoading, sessionI
                     <ShoppingBag size={18} color="var(--success)" />
                     <div>
                       <div style={{ fontWeight: '600', color: 'var(--text-dark)' }}>Sipariş Taslağı Oluşturuldu</div>
-                      <div style={{ fontSize: '12px', color: 'var(--text-light)' }}>ID: #{msg.orderData.order_id}</div>
+                      <div style={{ fontSize: '12px', color: 'var(--text-light)' }}>ID: #{toDisplayText(msg.orderData.order_id, '-')}</div>
                     </div>
                   </div>
                   <div style={{
@@ -369,9 +370,9 @@ const MessagePanel = ({ messages, setMessages, isLoading, setIsLoading, sessionI
                         border: 'none'
                       }}
                     >
-                      <div style={{ fontWeight: '700', marginBottom: '4px' }}>{item.title}</div>
+                      <div style={{ fontWeight: '700', marginBottom: '4px' }}>{toDisplayText(item.title, 'Yeni sohbet')}</div>
                       <div style={{ fontSize: '12px', color: 'var(--text-light)' }}>
-                        {new Date(item.updatedAt).toLocaleString('tr-TR')} · {item.messages.length} mesaj
+                        {new Date(item.updatedAt).toLocaleString('tr-TR')} · {(item.messages || []).length} mesaj
                       </div>
                     </button>
                     <button

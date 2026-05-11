@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { CheckCircle, KeyRound, Save, User, LogOut } from 'lucide-react';
 import { changePassword } from '../services/api';
+import { getApiErrorMessage } from '../utils/display';
 
 const SettingsPanel = ({ currentUser, onUserUpdate, onLogout }) => {
   const [passwordData, setPasswordData] = useState({
@@ -39,7 +40,7 @@ const SettingsPanel = ({ currentUser, onUserUpdate, onLogout }) => {
       setSuccessMsg('Şifreniz başarıyla güncellendi.');
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
     } catch (apiError) {
-      setErrorMsg(apiError?.response?.data?.detail || 'Şifre güncellenemedi.');
+      setErrorMsg(getApiErrorMessage(apiError, 'Şifre güncellenemedi.'));
     } finally {
       setIsSaving(false);
     }
@@ -102,7 +103,7 @@ const SettingsPanel = ({ currentUser, onUserUpdate, onLogout }) => {
             }}
           >
             <LogOut size={20} />
-            {currentUser?.email === "demo@koopilot.io" ? "Demodan Çık" : "Oturumu Kapat"}
+            {currentUser?.email === "demo@koopilot.local" ? "Demodan Çık" : "Oturumu Kapat"}
           </button>
         </div>
 

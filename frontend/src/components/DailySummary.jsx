@@ -36,6 +36,7 @@ import {
   getCampaignRecommendation,
 } from "../services/api";
 import { DailySummarySkeleton } from "./Skeleton";
+import { toDisplayText } from "../utils/display";
 
 const COLORS = [
   "#52B788",
@@ -61,7 +62,7 @@ const INTENT_MAP = {
 
 const formatIntent = (intent) => {
   if (INTENT_MAP[intent]) return INTENT_MAP[intent];
-  const label = intent.replace(/_/g, " ");
+  const label = toDisplayText(intent, "Diğer").replace(/_/g, " ");
   return label.charAt(0).toUpperCase() + label.slice(1);
 };
 
@@ -114,7 +115,7 @@ const DailySummary = () => {
       const data = await getCampaignRecommendation(product);
       setCampaignRec((prev) => ({
         ...prev,
-        [product.id]: data.recommendation,
+        [product.id]: toDisplayText(data?.recommendation, "Öneri alınamadı."),
       }));
     } catch {
       setCampaignRec((prev) => ({
@@ -137,13 +138,14 @@ const DailySummary = () => {
       : timeRange === "monthly"
         ? "30 Günlük Projeksiyon"
         : "Yıllık Projeksiyon";
-  const totalMessages = summary.total_messages * multiplier;
-  const lowStockCount = summary.low_stock_count;
-  const chartData = Object.entries(summary.intent_distribution).map(
+  const totalMessages = Number(summary.total_messages || 0) * multiplier;
+  const lowStockCount = Number(summary.low_stock_count || 0);
+  const intentDistribution = summary.intent_distribution || {};
+  const chartData = Object.entries(intentDistribution).map(
     ([intent, count]) => ({
       name: formatIntent(intent),
-      value: count * multiplier,
-      Adet: count * multiplier,
+      value: Number(count || 0) * multiplier,
+      Adet: Number(count || 0) * multiplier,
     }),
   );
 
@@ -218,7 +220,7 @@ const DailySummary = () => {
                 lineHeight: 1.5,
               }}
             >
-              {summary.summary_text}
+              {toDisplayText(summary.summary_text, "Bugünkü operasyon özeti hazırlanıyor.")}
             </p>
             <div
               style={{
@@ -517,7 +519,7 @@ const DailySummary = () => {
                       color: "var(--text-dark)",
                     }}
                   >
-                    {insight.title}
+                    {toDisplayText(insight.title, "İçgörü")}
                   </span>
                 </div>
                 <p
@@ -528,7 +530,7 @@ const DailySummary = () => {
                     lineHeight: 1.5,
                   }}
                 >
-                  {insight.text}
+                  {toDisplayText(insight.text)}
                 </p>
               </div>
             );
@@ -636,7 +638,7 @@ const DailySummary = () => {
                       </span>
                       <div>
                         <div style={{ fontWeight: 700, fontSize: "14px" }}>
-                          {p.name}
+                          {toDisplayText(p.name, "Ürün")}
                         </div>
                         <div
                           style={{
@@ -644,7 +646,7 @@ const DailySummary = () => {
                             color: "var(--text-light)",
                           }}
                         >
-                          {p.category}
+                          {toDisplayText(p.category, "Kategori")}
                         </div>
                       </div>
                     </div>
@@ -655,12 +657,12 @@ const DailySummary = () => {
                           color: "var(--primary-dark)",
                         }}
                       >
-                        {p.total_sold} Satış
+                        {Number(p.total_sold || 0).toLocaleString("tr-TR")} Satış
                       </div>
                       <div
                         style={{ fontSize: "12px", color: "var(--success)" }}
                       >
-                        {p.price} TL
+                        {Number(p.price || 0).toLocaleString("tr-TR")} TL
                       </div>
                     </div>
                   </div>
@@ -726,7 +728,7 @@ const DailySummary = () => {
                     >
                       <div>
                         <div style={{ fontWeight: 700, fontSize: "14px" }}>
-                          {p.name}
+                          {toDisplayText(p.name, "Ürün")}
                         </div>
                         <div
                           style={{
@@ -734,7 +736,7 @@ const DailySummary = () => {
                             color: "var(--text-light)",
                           }}
                         >
-                          Stok: {p.stock} | {p.price} TL
+                          Stok: {Number(p.stock || 0).toLocaleString("tr-TR")} | {Number(p.price || 0).toLocaleString("tr-TR")} TL
                         </div>
                       </div>
                       <button
@@ -787,7 +789,7 @@ const DailySummary = () => {
                         >
                           Koopilot Önerisi:
                         </div>
-                        {campaignRec[p.id]}
+                        {toDisplayText(campaignRec[p.id])}
                       </div>
                     )}
                   </div>

@@ -18,6 +18,7 @@ import {
   registerUser,
   setAuthToken,
 } from "../services/api";
+import { getApiErrorMessage } from "../utils/display";
 import logoUrl from "../assets/logo.png";
 
 const teamLinks = [
@@ -176,10 +177,6 @@ const Login = ({ onLogin, theme, setTheme }) => {
     setTheme(theme === "dark" ? "light" : "dark");
   };
 
-  const getApiError = (apiError, fallback) => {
-    return apiError?.response?.data?.detail || fallback;
-  };
-
   const completeLogin = (authResponse) => {
     localStorage.setItem("koopilot_auth_token", authResponse.access_token);
     setAuthToken(authResponse.access_token);
@@ -193,7 +190,7 @@ const Login = ({ onLogin, theme, setTheme }) => {
       completeLogin(await loginDemoUser());
     } catch (apiError) {
       setError(
-        getApiError(
+        getApiErrorMessage(
           apiError,
           "Demo oturumu başlatılamadı. Backend çalışıyor mu kontrol edin.",
         ),
@@ -212,7 +209,7 @@ const Login = ({ onLogin, theme, setTheme }) => {
       try {
         completeLogin(await loginUser(formData.email, formData.password));
       } catch (apiError) {
-        setError(getApiError(apiError, "E-posta veya şifre hatalı."));
+        setError(getApiErrorMessage(apiError, "E-posta veya şifre hatalı."));
       } finally {
         setIsSubmitting(false);
       }
@@ -233,7 +230,7 @@ const Login = ({ onLogin, theme, setTheme }) => {
         await registerUser(formData.name, formData.email, formData.password),
       );
     } catch (apiError) {
-      setError(getApiError(apiError, "Kayıt oluşturulamadı."));
+      setError(getApiErrorMessage(apiError, "Kayıt oluşturulamadı."));
     } finally {
       setIsSubmitting(false);
     }

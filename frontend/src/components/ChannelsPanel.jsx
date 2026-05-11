@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { CheckCircle2, Clock3, MessageCircle, Send, Smartphone, XCircle } from 'lucide-react';
 import { getIntegrationChannels } from '../services/api';
+import { toDisplayText } from '../utils/display';
 
 const fallbackChannels = {
   whatsapp: {
@@ -69,13 +70,13 @@ const ChannelCard = ({ title, channel, icon, tone }) => (
           {icon}
         </div>
         <div>
-          <h3 style={{ margin: 0, fontSize: '18px' }}>{title}</h3>
-          <div style={{ fontSize: '13px', color: 'var(--text-light)' }}>{channel.name}</div>
+          <h3 style={{ margin: 0, fontSize: '18px' }}>{toDisplayText(title, 'Kanal')}</h3>
+          <div style={{ fontSize: '13px', color: 'var(--text-light)' }}>{toDisplayText(channel.name, 'Kanal bilgisi')}</div>
         </div>
       </div>
       <span style={statusStyle(channel.live)}>
         {channel.live ? <CheckCircle2 size={14} /> : <Clock3 size={14} />}
-        {channel.label}
+        {toDisplayText(channel.label, channel.live ? 'Canlı' : 'Hazır değil')}
       </span>
     </div>
 
@@ -86,7 +87,7 @@ const ChannelCard = ({ title, channel, icon, tone }) => (
       gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
       gap: '10px'
     }}>
-      {(channel.implemented || []).map((item) => (
+      {(Array.isArray(channel.implemented) ? channel.implemented : []).map((item) => (
         <div key={item} style={{
           display: 'flex',
           gap: '8px',
@@ -98,7 +99,7 @@ const ChannelCard = ({ title, channel, icon, tone }) => (
           fontSize: '13px'
         }}>
           <CheckCircle2 size={15} color="var(--success)" />
-          {item}
+          {toDisplayText(item)}
         </div>
       ))}
     </div>
@@ -118,7 +119,7 @@ const ChannelCard = ({ title, channel, icon, tone }) => (
       <div>
         <div style={{ fontSize: '13px', fontWeight: 800, marginBottom: '8px' }}>Canlıya almak için gerekli ortam değişkenleri</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-          {channel.required_env.map((envName) => (
+          {(Array.isArray(channel.required_env) ? channel.required_env : []).map((envName) => (
             <code key={envName} style={{
               padding: '6px 8px',
               borderRadius: '8px',
@@ -126,7 +127,7 @@ const ChannelCard = ({ title, channel, icon, tone }) => (
               color: 'var(--text-dark)',
               fontSize: '12px'
             }}>
-              {envName}
+              {toDisplayText(envName)}
             </code>
           ))}
         </div>
@@ -144,16 +145,16 @@ const ChannelCard = ({ title, channel, icon, tone }) => (
         fontSize: '13px'
       }}>
         {channel.bot_username && (
-          <div><strong>Bot:</strong> @{channel.bot_username}</div>
+          <div><strong>Bot:</strong> @{toDisplayText(channel.bot_username)}</div>
         )}
         {channel.expected_webhook_url && (
-          <div style={{ wordBreak: 'break-word' }}><strong>Beklenen webhook:</strong> {channel.expected_webhook_url}</div>
+          <div style={{ wordBreak: 'break-word' }}><strong>Beklenen webhook:</strong> {toDisplayText(channel.expected_webhook_url)}</div>
         )}
         {channel.pending_update_count !== undefined && channel.pending_update_count !== null && (
-          <div><strong>Bekleyen update:</strong> {channel.pending_update_count}</div>
+          <div><strong>Bekleyen update:</strong> {toDisplayText(channel.pending_update_count)}</div>
         )}
         {channel.last_error_message && (
-          <div style={{ color: 'var(--error)' }}><strong>Son Telegram hatası:</strong> {channel.last_error_message}</div>
+          <div style={{ color: 'var(--error)' }}><strong>Son Telegram hatası:</strong> {toDisplayText(channel.last_error_message)}</div>
         )}
       </div>
     )}
