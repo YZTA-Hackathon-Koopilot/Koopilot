@@ -17,6 +17,20 @@ const initialChatMessages = [
 
 const createSessionId = () => `session_${Math.random().toString(36).substr(2, 9)}`;
 
+const getUserStorageKey = (user) => {
+  const rawKey = user?.email || user?.id || 'guest';
+  return rawKey.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+};
+
+const getChatStorageKeys = (user) => {
+  const userKey = getUserStorageKey(user);
+  return {
+    currentChat: `koopilot_${userKey}_current_chat`,
+    currentSession: `koopilot_${userKey}_current_session`,
+    history: `koopilot_${userKey}_chat_history`
+  };
+};
+
 const readStoredJson = (key, fallback) => {
   try {
     const saved = localStorage.getItem(key);
@@ -30,16 +44,16 @@ function App() {
   const [activeTab, setActiveTab] = useState('messages');
   const [searchTerm, setSearchTerm] = useState('');
   const [theme, setTheme] = useState(() => localStorage.getItem('koopilot_theme') || 'light');
-  const [chatMessages, setChatMessages] = useState(() => {
-    return readStoredJson('koopilot_current_chat', initialChatMessages);
-  });
-  const [chatLoading, setChatLoading] = useState(false);
-  const [chatSessionId, setChatSessionId] = useState(() => localStorage.getItem('koopilot_current_session') || createSessionId());
-  const [chatHistory, setChatHistory] = useState(() => {
-    return readStoredJson('koopilot_chat_history', []);
-  });
   const [currentUser, setCurrentUser] = useState(() => {
     return readStoredJson('koopilot_current_user', null);
+  });
+  const [chatMessages, setChatMessages] = useState(() => {
+    return readStoredJson(getChatStorageKeys(currentUser).currentChat, initialChatMessages);
+  });
+  const [chatLoading, setChatLoading] = useState(false);
+  const [chatSessionId, setChatSessionId] = useState(() => localStorage.getItem(getChatStorageKeys(currentUser).currentSession) || createSessionId());
+  const [chatHistory, setChatHistory] = useState(() => {
+    return readStoredJson(getChatStorageKeys(currentUser).history, []);
   });
 
   useEffect(() => {
@@ -52,8 +66,11 @@ function App() {
   }, [theme]);
 
   useEffect(() => {
-    localStorage.setItem('koopilot_current_chat', JSON.stringify(chatMessages));
-    localStorage.setItem('koopilot_current_session', chatSessionId);
+    if (!currentUser) return;
+
+    const storageKeys = getChatStorageKeys(currentUser);
+    localStorage.setItem(storageKeys.currentChat, JSON.stringify(chatMessages));
+    localStorage.setItem(storageKeys.currentSession, chatSessionId);
     if (chatMessages.length <= 1) return;
 
     const firstUserMessage = chatMessages.find((message) => message.type === 'user')?.text || 'Yeni sohbet';
@@ -66,10 +83,33 @@ function App() {
 
     setChatHistory((prev) => {
       const next = [historyItem, ...prev.filter((item) => item.id !== chatSessionId)].slice(0, 12);
-      localStorage.setItem('koopilot_chat_history', JSON.stringify(next));
+      localStorage.setItem(storageKeys.history, JSON.stringify(next));
       return next;
     });
-  }, [chatMessages, chatSessionId]);
+  }, [chatMessages, chatSessionId, currentUser]);
+
+  const loadChatStateForUser = (user) => {
+    const storageKeys = getChatStorageKeys(user);
+    setChatMessages(readStoredJson(storageKeys.currentChat, initialChatMessages));
+    setChatSessionId(localStorage.getItem(storageKeys.currentSession) || createSessionId());
+    setChatHistory(readStoredJson(storageKeys.history, []));
+    setChatLoading(false);
+  };
+
+  const handleLogin = (user) => {
+    setCurrentUser(user);
+    loadChatStateForUser(user);
+    setActiveTab('messages');
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setChatMessages(initialChatMessages);
+    setChatSessionId(createSessionId());
+    setChatHistory([]);
+    setChatLoading(false);
+    setActiveTab('messages');
+  };
 
   const handleNewChat = () => {
     setChatSessionId(createSessionId());
@@ -83,9 +123,10 @@ function App() {
   };
 
   const handleDeleteChat = (historyId) => {
+    const storageKeys = getChatStorageKeys(currentUser);
     setChatHistory((prev) => {
       const next = prev.filter((item) => item.id !== historyId);
-      localStorage.setItem('koopilot_chat_history', JSON.stringify(next));
+      localStorage.setItem(storageKeys.history, JSON.stringify(next));
       return next;
     });
     if (historyId === chatSessionId) {
@@ -154,7 +195,7 @@ function App() {
   };
 
   if (!currentUser) {
-    return <Login onLogin={setCurrentUser} />;
+    return <Login onLogin={handleLogin} />;
   }
 
   return (
@@ -163,7 +204,7 @@ function App() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         currentUser={currentUser}
-        onLogout={() => setCurrentUser(null)}
+        onLogout={handleLogout}
       />
       <div className="main-container">
         <Header 
@@ -172,6 +213,8 @@ function App() {
           setSearchTerm={setSearchTerm} 
           theme={theme}
           setTheme={setTheme}
+          currentUser={currentUser}
+          onOpenProfile={() => setActiveTab('settings')}
         />
         <main className="content-area">
           <div key={activeTab} className="page-transition">

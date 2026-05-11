@@ -6,7 +6,8 @@ import {
   Truck, 
   BarChart3, 
   RadioTower,
-  Settings,
+  LogOut,
+  User,
   Calendar,
   Leaf
 } from 'lucide-react';
@@ -19,7 +20,6 @@ const Sidebar = ({ activeTab, setActiveTab, currentUser, onLogout }) => {
     { id: 'channels', label: 'Kanallar', icon: <RadioTower size={20} /> },
     { id: 'summary', label: 'Günlük Özet', icon: <BarChart3 size={20} /> },
     { id: 'calendar', label: 'Takvim', icon: <Calendar size={20} /> },
-    { id: 'settings', label: 'Hesabım', icon: <Settings size={20} /> },
   ];
   return (
     <div style={{
@@ -83,32 +83,77 @@ const Sidebar = ({ activeTab, setActiveTab, currentUser, onLogout }) => {
       </nav>
       <div style={{
         marginTop: '16px',
-        padding: '16px',
+        padding: '10px',
         backgroundColor: 'rgba(255,255,255,0.05)',
-        borderRadius: '16px',
-        fontSize: '14px',
+        borderRadius: '14px',
         display: 'flex',
-        flexDirection: 'column',
-        gap: '12px'
+        alignItems: 'center',
+        gap: '8px'
       }}>
-        <div>
-          <p style={{ opacity: 0.7, marginBottom: '4px' }}>Hoş Geldiniz,</p>
-          <p style={{ fontWeight: '700', color: 'var(--primary-light)' }}>{currentUser?.name || 'Kooperatif Paneli'}</p>
-        </div>
+        <button
+          type="button"
+          onClick={() => setActiveTab('settings')}
+          title="Profil sayfasını aç"
+          style={{
+            flex: 1,
+            minWidth: 0,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            padding: '8px',
+            backgroundColor: 'transparent',
+            color: 'var(--sidebar-text)',
+            borderRadius: '10px',
+            textAlign: 'left'
+          }}
+        >
+          <span style={{
+            width: '32px',
+            height: '32px',
+            borderRadius: '50%',
+            backgroundColor: 'rgba(82, 183, 136, 0.2)',
+            color: 'var(--primary-light)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0
+          }}>
+            <User size={17} />
+          </span>
+          <span style={{ minWidth: 0 }}>
+            <span style={{ display: 'block', fontSize: '11px', opacity: 0.65, lineHeight: 1.2 }}>Hoş geldiniz</span>
+            <span style={{
+              display: 'block',
+              fontSize: '13px',
+              fontWeight: 800,
+              color: 'var(--primary-light)',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}>
+              {currentUser?.name || 'Kooperatif Paneli'}
+            </span>
+          </span>
+        </button>
         <button
           type="button"
           onClick={onLogout}
+          title="Çıkış yap"
+          aria-label="Çıkış yap"
           style={{
-            padding: '10px 12px',
+            width: '36px',
+            height: '36px',
             backgroundColor: 'rgba(230, 57, 70, 0.1)',
             color: 'var(--error)',
             border: '1px solid rgba(230, 57, 70, 0.2)',
             borderRadius: '10px',
-            fontWeight: '700',
-            textAlign: 'center'
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0
           }}
         >
-          Çıkış Yap
+          <LogOut size={18} />
         </button>
       </div>
     </div>

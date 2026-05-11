@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from urllib import request as urlrequest
 from urllib.error import URLError
 
@@ -15,6 +16,56 @@ router = APIRouter(
     prefix="/integrations",
     tags=["Integrations"]
 )
+
+TELEGRAM_COMMANDS_TEXT = """Kullanabileceğiniz komutlar:
+
+/start - Koopilot'u başlatır ve kısa tanıtımı gösterir
+/yardim - Botun nasıl çalıştığını anlatır
+/ornek - Örnek müşteri mesajı gösterir
+/stok - Stok sorgusu için örnek kullanım gösterir
+/siparis - Sipariş oluşturmak için örnek mesaj gösterir
+/kargo - Kargo sorgusu için örnek kullanım gösterir
+
+Komut kullanmadan da doğal dille yazabilirsiniz. Örneğin:
+"2 kavanoz domates salçası almak istiyorum"
+"Nar ekşisi stokta var mı?"
+"Kargom nerede?"
+"""
+
+TELEGRAM_PLATFORM_TEXT = """Evet, şu anda Telegram üzerindeki Koopilot botu ile konuşuyorsunuz.
+
+Bu kanal gerçek Telegram entegrasyonudur. Yazdığınız sipariş, stok ve kargo mesajları Koopilot'un AI analiz hattına aktarılır."""
+
+TELEGRAM_COMMAND_RESPONSES = {
+    "/start": (
+        "Merhaba, ben Koopilot. Kooperatif siparişlerinizi analiz edip stok ve sipariş taslağı oluşturabilirim.\n\n"
+        "Denemek için şöyle yazabilirsiniz:\n"
+        "Merhaba, ben Ayşe Yılmaz. 05551234567. Ankara'ya 2 domates salçası ve 1 nar ekşisi istiyorum.\n\n"
+        "Komutları görmek için /yardim yazabilirsiniz."
+    ),
+    "/help": TELEGRAM_COMMANDS_TEXT,
+    "/yardim": TELEGRAM_COMMANDS_TEXT,
+    "/ornek": (
+        "Örnek mesaj:\n"
+        "Merhaba, ben Ayşe Yılmaz. 05551234567. Ankara Çankaya Atatürk Mah. No 12. "
+        "2 kavanoz domates salçası ve 1 nar ekşisi almak istiyorum."
+    ),
+    "/stok": (
+        "Stok sorgusu için şöyle yazabilirsiniz:\n"
+        "Nar ekşisi stokta var mı?\n"
+        "Domates salçasından kaç kavanoz kaldı?"
+    ),
+    "/siparis": (
+        "Sipariş oluşturmak için ürün, adet, isim, telefon ve adres bilgisini yazabilirsiniz.\n\n"
+        "Örnek:\n"
+        "Ben Ahmet Yılmaz. 05551234567. İzmir Konak. 3 kavanoz domates salçası istiyorum."
+    ),
+    "/kargo": (
+        "Kargo sorgusu için sipariş numarası, isim veya telefon bilgisini yazabilirsiniz.\n\n"
+        "Örnek:\n"
+        "Kargom nerede? Telefonum 05551234567."
+    ),
+}
 
 
 def call_json_api(url: str, payload: dict | None = None, method: str = "POST"):
@@ -267,6 +318,47 @@ def send_telegram_chat_action(chat_id: int, action: str = "typing"):
     })
 
 
+def normalize_turkish_text(value: str):
+    replacements = str.maketrans("çğıöşüÇĞİÖŞÜ", "cgiosuCGIOSU")
+    return re.sub(r"\s+", " ", value.translate(replacements).lower()).strip()
+
+
+def get_telegram_direct_reply(text: str):
+    normalized = normalize_turkish_text(text)
+    first_token = normalized.split(" ", 1)[0] if normalized else ""
+    command = first_token.split("@", 1)[0]
+
+    if command in TELEGRAM_COMMAND_RESPONSES:
+        return TELEGRAM_COMMAND_RESPONSES[command]
+
+    command_question_markers = [
+        "komut",
+        "command",
+        "neler yapabilirsin",
+        "ne yapabilirsin",
+        "nasil kullanilir",
+        "nasil kullanabilirim",
+        "yardim",
+    ]
+    if any(marker in normalized for marker in command_question_markers):
+        return TELEGRAM_COMMANDS_TEXT
+
+    platform_question_markers = [
+        "burası telegram",
+        "burasi telegram",
+        "telegram mi",
+        "telegram mı",
+        "nereden yaziyorum",
+        "hangi platform",
+        "hangi kanaldasın",
+        "hangi kanaldasin",
+    ]
+    if any(marker in normalized for marker in platform_question_markers):
+        return TELEGRAM_PLATFORM_TEXT
+
+    return None
+
+
 @router.get("/channels", summary="Mesaj kanallarının gerçek bağlantı durumunu listele")
 def channels_status():
     return get_channel_statuses()
@@ -396,27 +488,12 @@ async def telegram_webhook(
     if not chat_id or not text:
         return {"status": "ignored", "reason": "Metin mesajı bulunamadı."}
 
-    if text.startswith("/start"):
-        reply_text = (
-            "Merhaba, ben Koopilot. Kooperatif siparişlerinizi analiz edip stok ve sipariş taslağı oluşturabilirim.\n\n"
-            "Denemek için şöyle yazabilirsiniz:\n"
-            "Merhaba, ben Ayşe Yılmaz. 05551234567. Ankara'ya 2 domates salçası ve 1 nar ekşisi istiyorum."
-        )
+    direct_reply = get_telegram_direct_reply(text)
+    if direct_reply:
         return {
             "status": "command_processed",
             "chat_id": chat_id,
-            "telegram": send_telegram_message(chat_id, reply_text),
-        }
-
-    if text.startswith("/help") or text.startswith("/yardim"):
-        reply_text = (
-            "Koopilot'a doğal dille sipariş, kargo sorusu veya şikayet yazabilirsiniz.\n"
-            "Örnek: 2 kavanoz domates salçası istiyorum, İstanbul'a kargo olur mu?"
-        )
-        return {
-            "status": "command_processed",
-            "chat_id": chat_id,
-            "telegram": send_telegram_message(chat_id, reply_text),
+            "telegram": send_telegram_message(chat_id, direct_reply),
         }
 
     session_id = f"telegram_{chat_id}"

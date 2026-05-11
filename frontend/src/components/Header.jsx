@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Bell, User, Search, AlertTriangle, Moon, Sun } from 'lucide-react';
 import { getInventoryAlerts } from '../services/api';
-const Header = ({ title, searchTerm, setSearchTerm, theme, setTheme }) => {
+const Header = ({ title, searchTerm, setSearchTerm, theme, setTheme, currentUser, onOpenProfile }) => {
   const [alerts, setAlerts] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const notificationRef = useRef(null);
@@ -196,16 +196,27 @@ const Header = ({ title, searchTerm, setSearchTerm, theme, setTheme }) => {
             )}
           </div>
         )}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          padding: '4px 4px 4px 12px',
-          backgroundColor: 'var(--surface-muted)',
-          borderRadius: '30px',
-          border: '1px solid var(--border-color)'
-        }}>
-          <span style={{ fontSize: '14px', fontWeight: '500' }}>Yönetici</span>
+        <button
+          type="button"
+          onClick={() => {
+            setShowNotifications(false);
+            onOpenProfile?.();
+          }}
+          title="Hesabım sayfasını aç"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            padding: '4px 4px 4px 12px',
+            backgroundColor: 'var(--surface-muted)',
+            borderRadius: '30px',
+            border: '1px solid var(--border-color)',
+            color: 'var(--text-dark)'
+          }}
+        >
+          <span style={{ fontSize: '14px', fontWeight: '600', maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {currentUser?.name || currentUser?.role || 'Hesabım'}
+          </span>
           <div style={{
             width: '32px',
             height: '32px',
@@ -218,7 +229,7 @@ const Header = ({ title, searchTerm, setSearchTerm, theme, setTheme }) => {
           }}>
             <User size={18} />
           </div>
-        </div>
+        </button>
       </div>
     </header>
   );
