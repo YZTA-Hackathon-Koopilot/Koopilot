@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { getInventory, updateProduct, createProduct, uploadInventory } from '../services/api';
-import { Package, AlertTriangle, TrendingUp, Search, Plus, Edit2, Save, X, Upload, Download, FileSpreadsheet } from 'lucide-react';
+import { Package, AlertTriangle, TrendingUp, Search, Plus, Edit2, Save, X, Upload, Download, FileSpreadsheet, Sprout, Wheat, Leaf, Trees } from 'lucide-react';
 
 const InventoryPanel = ({ searchTerm }) => {
   const [inventory, setInventory] = useState([]);
@@ -114,168 +114,231 @@ const InventoryPanel = ({ searchTerm }) => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', position: 'relative' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ margin: 0, color: 'var(--primary-dark)', fontSize: '20px' }}>Envanter Yönetimi</h2>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            onChange={handleFileUpload} 
-            accept=".xlsx, .csv" 
-            style={{ display: 'none' }} 
-          />
-          <button 
-            onClick={downloadTemplate}
-            title="Excel Şablonu İndir"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '10px 16px',
-              backgroundColor: 'var(--surface)',
-              color: 'var(--text-light)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '12px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              transition: 'all 0.2'
-            }}
-          >
-            <Download size={18} /> Şablon
-          </button>
-          <button 
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '10px 20px',
-              backgroundColor: 'var(--primary-light)',
-              color: 'var(--primary-dark)',
-              border: 'none',
-              borderRadius: '12px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              opacity: isUploading ? 0.7 : 1
-            }}
-          >
-            <Upload size={18} /> {isUploading ? 'Yükleniyor...' : 'Toplu Yükle'}
-          </button>
-          <button 
-            onClick={() => handleOpenModal()}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '10px 20px',
-              backgroundColor: 'var(--primary-mid)',
-              color: 'var(--on-primary)',
-              border: 'none',
-              borderRadius: '12px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(45, 106, 79, 0.2)'
-            }}
-          >
-            <Plus size={18} /> Yeni Ürün Ekle
-          </button>
-        </div>
-      </div>
-
-      {inventory.filter(item => item.stock < 5).length > 0 && (
-        <div className="glass-card" style={{
-          backgroundColor: 'rgba(230, 57, 70, 0.1)',
-          borderLeft: '4px solid var(--error)',
-          padding: '20px 24px',
-          borderRadius: '16px',
-          display: 'flex',
-          alignItems: 'flex-start',
-          gap: '16px',
-          animation: 'fadeIn 0.4s ease-out'
-        }}>
-          <div style={{ color: 'var(--error)', marginTop: '2px' }}>
-            <AlertTriangle size={28} />
-          </div>
-          <div style={{ flex: 1 }}>
-            <h3 style={{ color: 'var(--error)', margin: '0 0 8px', fontSize: '18px', fontWeight: 800 }}>
-              Kritik Stok Uyarısı
-            </h3>
-            <p style={{ margin: 0, color: 'var(--text-dark)', fontSize: '15px', lineHeight: 1.5 }}>
-              Aşağıdaki ürünlerin stoğu tükenmek üzere. Lütfen en kısa sürede tedarik planlaması yapın:
-            </p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px' }}>
-              {inventory.filter(item => item.stock < 5).map(item => (
-                <span key={item.id} style={{
-                  backgroundColor: 'rgba(230, 57, 70, 0.15)',
-                  color: 'var(--error)',
-                  padding: '6px 12px',
-                  borderRadius: '20px',
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  border: '1px solid rgba(230, 57, 70, 0.3)'
-                }}>
-                  {item.name} ({item.stock} {item.unit})
-                </span>
-              ))}
+      <div style={{ display: 'flex', gap: '24px', alignItems: 'stretch' }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <h2 style={{ margin: 0, color: 'var(--primary-dark)', fontSize: '20px' }}>Envanter Yönetimi</h2>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleFileUpload} 
+                accept=".xlsx, .csv" 
+                style={{ display: 'none' }} 
+              />
+              <button 
+                onClick={downloadTemplate}
+                title="Excel Şablonu İndir"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 16px',
+                  backgroundColor: 'var(--surface)',
+                  color: 'var(--text-light)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '12px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.2'
+                }}
+              >
+                <Download size={18} /> Şablon
+              </button>
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 20px',
+                  backgroundColor: 'var(--primary-light)',
+                  color: 'var(--primary-dark)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  opacity: isUploading ? 0.7 : 1
+                }}
+              >
+                <Upload size={18} /> {isUploading ? 'Yükleniyor...' : 'Toplu Yükle'}
+              </button>
+              <button 
+                onClick={() => handleOpenModal()}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 20px',
+                  backgroundColor: 'var(--primary-mid)',
+                  color: 'var(--on-primary)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(45, 106, 79, 0.2)'
+                }}
+              >
+                <Plus size={18} /> Yeni Ürün Ekle
+              </button>
             </div>
           </div>
-        </div>
-      )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
-        <div className="glass-card" style={{
-          backgroundColor: 'var(--white)',
-          padding: '24px',
-          borderRadius: '20px',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '16px'
-        }}>
-          <div style={{ padding: '12px', backgroundColor: 'rgba(45, 106, 79, 0.1)', borderRadius: '14px', color: 'var(--primary-mid)' }}>
-            <Package size={24} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+            <div className="glass-card" style={{
+              backgroundColor: 'var(--white)',
+              padding: '24px',
+              borderRadius: '20px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '16px'
+            }}>
+              <div style={{ padding: '12px', backgroundColor: 'rgba(45, 106, 79, 0.1)', borderRadius: '14px', color: 'var(--primary-mid)' }}>
+                <Package size={24} />
+              </div>
+              <div>
+                <div style={{ fontSize: '14px', color: 'var(--text-light)' }}>Toplam Ürün</div>
+                <div style={{ fontSize: '24px', fontWeight: '700' }}>{filteredInventory.length}</div>
+              </div>
+            </div>
+            <div className="glass-card" style={{
+              backgroundColor: 'var(--white)',
+              padding: '24px',
+              borderRadius: '20px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '16px'
+            }}>
+              <div style={{ padding: '12px', backgroundColor: 'rgba(230, 57, 70, 0.1)', borderRadius: '14px', color: 'var(--error)' }}>
+                <AlertTriangle size={24} />
+              </div>
+              <div>
+                <div style={{ fontSize: '14px', color: 'var(--text-light)' }}>Düşük Stok Uyarıları</div>
+                <div style={{ fontSize: '24px', fontWeight: '700' }}>{filteredInventory.filter(i => i.stock < 5).length}</div>
+              </div>
+            </div>
+            <div className="glass-card" style={{
+              backgroundColor: 'var(--white)',
+              padding: '24px',
+              borderRadius: '20px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '16px'
+            }}>
+              <div style={{ padding: '12px', backgroundColor: 'rgba(42, 157, 143, 0.1)', borderRadius: '14px', color: 'var(--success)' }}>
+                <TrendingUp size={24} />
+              </div>
+              <div>
+                <div style={{ fontSize: '14px', color: 'var(--text-light)' }}>Kategori Sayısı</div>
+                <div style={{ fontSize: '24px', fontWeight: '700' }}>{[...new Set(inventory.map(i => i.category))].length}</div>
+              </div>
+            </div>
           </div>
-          <div>
-            <div style={{ fontSize: '14px', color: 'var(--text-light)' }}>Toplam Ürün</div>
-            <div style={{ fontSize: '24px', fontWeight: '700' }}>{filteredInventory.length}</div>
-          </div>
+
+          {inventory.filter(item => item.stock < 5).length > 0 && (
+            <div className="glass-card" style={{
+              backgroundColor: 'rgba(230, 57, 70, 0.1)',
+              borderLeft: '4px solid var(--error)',
+              padding: '16px 20px',
+              borderRadius: '16px',
+              marginTop: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              animation: 'fadeIn 0.4s ease-out'
+            }}>
+              <AlertTriangle size={20} color="var(--error)" />
+              <div style={{ flex: 1, fontSize: '14px', color: 'var(--text-dark)' }}>
+                <strong>Kritik Stok!</strong> {inventory.filter(item => item.stock < 5).length} ürün tükenmek üzere.
+              </div>
+            </div>
+          )}
         </div>
+
         <div className="glass-card" style={{
-          backgroundColor: 'var(--white)',
+          width: '320px',
+          background: 'var(--sidebar-bg)',
+          borderRadius: '24px',
           padding: '24px',
-          borderRadius: '20px',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
-          gap: '16px'
+          justifyContent: 'center',
+          gap: '16px',
+          position: 'relative',
+          overflow: 'hidden',
+          border: '1px solid var(--primary-light)'
         }}>
-          <div style={{ padding: '12px', backgroundColor: 'rgba(230, 57, 70, 0.1)', borderRadius: '14px', color: 'var(--error)' }}>
-            <AlertTriangle size={24} />
+          <div style={{ 
+            position: 'absolute', 
+            top: 0, 
+            left: 0, 
+            right: 0, 
+            height: '4px', 
+            background: 'linear-gradient(90deg, transparent, var(--primary-light), transparent)' 
+          }} />
+          <h3 style={{ margin: 0, color: 'var(--sidebar-text)', fontSize: '16px', fontWeight: '700', textAlign: 'center' }}>
+            Stok Verimlilik Ağacı
+          </h3>
+          <div style={{ 
+            width: '180px', 
+            height: '180px', 
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            {/* Flying Garden Icons */}
+            <div className="floating-bot" style={{ position: 'absolute', top: '-10px', left: '10px', color: 'var(--primary-light)', opacity: 0.6 }}>
+              <Sprout size={20} />
+            </div>
+            <div className="floating-bot" style={{ position: 'absolute', bottom: '10px', right: '10px', color: 'var(--primary-light)', opacity: 0.6, animationDelay: '1s' }}>
+              <Wheat size={20} />
+            </div>
+            <div className="floating-bot" style={{ position: 'absolute', top: '20px', right: '0px', color: 'var(--primary-light)', opacity: 0.4, animationDelay: '2s' }}>
+              <Leaf size={16} />
+            </div>
+
+             <img 
+              src="/stock_tree.png" 
+              alt="Stock Tree" 
+              style={{ 
+                width: '100%', 
+                height: '100%', 
+                objectFit: 'contain',
+                filter: 'drop-shadow(0 0 10px rgba(82, 183, 136, 0.5))',
+                transform: `scale(${0.7 + (Math.max(0, 100 - (inventory.filter(i => i.stock < 5).length * 10)) / 333)})`,
+                transition: 'transform 1s cubic-bezier(0.34, 1.56, 0.64, 1)'
+              }} 
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'flex';
+              }}
+            />
+            <div style={{ 
+              display: 'none', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              color: 'var(--primary-light)' 
+            }}>
+              <Trees size={48} />
+              <span style={{ fontSize: '12px', marginTop: '8px' }}>Büyüyor...</span>
+            </div>
           </div>
-          <div>
-            <div style={{ fontSize: '14px', color: 'var(--text-light)' }}>Düşük Stok Uyarıları</div>
-            <div style={{ fontSize: '24px', fontWeight: '700' }}>{filteredInventory.filter(i => i.stock < 5).length}</div>
-          </div>
-        </div>
-        <div className="glass-card" style={{
-          backgroundColor: 'var(--white)',
-          padding: '24px',
-          borderRadius: '20px',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '16px'
-        }}>
-          <div style={{ padding: '12px', backgroundColor: 'rgba(42, 157, 143, 0.1)', borderRadius: '14px', color: 'var(--success)' }}>
-            <TrendingUp size={24} />
-          </div>
-          <div>
-            <div style={{ fontSize: '14px', color: 'var(--text-light)' }}>Kategori Sayısı</div>
-            <div style={{ fontSize: '24px', fontWeight: '700' }}>{[...new Set(inventory.map(i => i.category))].length}</div>
+
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ color: 'var(--primary-light)', fontSize: '24px', fontWeight: '800' }}>
+              %{Math.max(0, 100 - (inventory.filter(i => i.stock < 5).length * 10)) }
+            </div>
+            <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '12px' }}>Genel Stok Sağlığı</div>
           </div>
         </div>
       </div>
+
 
       <div className="glass-card" style={{
         backgroundColor: 'var(--white)',

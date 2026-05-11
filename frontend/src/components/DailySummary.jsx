@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { AlertCircle, BarChart3, MessageSquare, TrendingUp, Sparkles, Lightbulb, Zap, ShieldCheck, RotateCw, Trophy, ShoppingBag, Tag, RefreshCw } from 'lucide-react';
+import { AlertCircle, BarChart3, MessageSquare, TrendingUp, Sparkles, Lightbulb, Zap, ShieldCheck, RotateCw, Trophy, ShoppingBag, Tag, RefreshCw, Wheat, Trees } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { getDailySummary, getInventoryInsights, getCampaignRecommendation } from '../services/api';
 
@@ -104,7 +104,7 @@ const DailySummary = () => {
         <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <h2 style={{ color: 'var(--primary-dark)', fontSize: '28px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              Günün Özeti
+              <Wheat size={32} color="var(--primary-mid)" /> Günün Hasadı
               <button 
                 onClick={() => fetchSummary(true)} 
                 title="Verileri Yenile"
@@ -301,7 +301,7 @@ const DailySummary = () => {
 
       <div style={{ marginTop: '8px' }}>
         <h3 style={{ marginBottom: '20px', color: 'var(--text-dark)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Trophy size={20} color="#F4A261" /> Koopilot Insights - Haftalık Performans
+          <Trees size={20} color="#F4A261" /> Koopilot Insights - Haftalık Performans
         </h3>
         
         {isInsightsLoading ? (

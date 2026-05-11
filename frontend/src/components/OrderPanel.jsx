@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { getOrders, approveOrder, rejectOrder, deleteOrder } from '../services/api';
-import { Check, X, User, Phone, MapPin, Calendar, ShoppingBag, Trash2 } from 'lucide-react';
+import { Check, X, User, Phone, MapPin, Calendar, ShoppingBag, Trash2, Package, Sparkles } from 'lucide-react';
 const OrderPanel = () => {
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeRecipe, setActiveRecipe] = useState(null); // Track which order's recipe is open
   const fetchOrders = async () => {
     try {
       const data = await getOrders();
@@ -80,38 +81,103 @@ const OrderPanel = () => {
                   </div>
                 </div>
               </div>
-               <div style={{ display: 'flex', gap: '8px' }}>
-                <div style={{
-                  padding: '6px 12px',
-                  borderRadius: '8px',
-                  fontSize: '12px',
-                  fontWeight: '700',
-                  backgroundColor: order.status === 'Onaylandı' ? 'rgba(42, 157, 143, 0.1)' : 
-                                   order.status === 'Reddedildi' ? 'rgba(230, 57, 70, 0.1)' : 'rgba(244, 162, 97, 0.1)',
-                  color: order.status === 'Onaylandı' ? 'var(--success)' : 
-                         order.status === 'Reddedildi' ? 'var(--error)' : 'var(--warning)'
-                }}>
-                  {order.status === 'Onaylandı' ? 'ONAYLANDI' : 
-                   order.status === 'Reddedildi' ? 'REDDEDİLDİ' : 'TASLAK'}
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  {order.packaging_hint && (
+                    <div style={{ position: 'relative' }}>
+                      <button 
+                        onMouseEnter={() => setActiveRecipe(order.id)}
+                        onMouseLeave={() => setActiveRecipe(null)}
+                        onClick={() => setActiveRecipe(activeRecipe === order.id ? null : order.id)}
+                        style={{
+                          padding: '8px',
+                          backgroundColor: '#10b981',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '10px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          boxShadow: '0 0 15px rgba(16, 185, 129, 0.4)',
+                          transition: 'all 0.3s ease',
+                          animation: 'pulseGlow 2s infinite'
+                        }}
+                        title="Koopilot Paketleme Reçetesi"
+                      >
+                        <Package size={18} />
+                      </button>
+
+                      {activeRecipe === order.id && (
+                        <div style={{
+                          position: 'absolute',
+                          top: '100%',
+                          right: '0',
+                          marginTop: '12px',
+                          width: '280px',
+                          background: 'rgba(255, 255, 255, 0.85)',
+                          backdropFilter: 'blur(12px)',
+                          WebkitBackdropFilter: 'blur(12px)',
+                          borderRadius: '16px',
+                          padding: '16px',
+                          boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+                          border: '1px solid rgba(16, 185, 129, 0.2)',
+                          zIndex: 100,
+                          animation: 'modalPop 0.3s ease-out'
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', color: '#065f46' }}>
+                            <Sparkles size={16} />
+                            <span style={{ fontWeight: '800', fontSize: '14px' }}>Koopilot Reçetesi</span>
+                          </div>
+                          <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#374151', lineHeight: '1.5' }}>
+                            {order.packaging_hint}
+                          </p>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                            <span style={{ padding: '4px 8px', backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#065f46', borderRadius: '6px', fontSize: '11px', fontWeight: '700' }}>
+                              📦 20x20 Koli
+                            </span>
+                            <span style={{ padding: '4px 8px', backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#065f46', borderRadius: '6px', fontSize: '11px', fontWeight: '700' }}>
+                              🫧 Pıtpıt Naylon
+                            </span>
+                            <span style={{ padding: '4px 8px', backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#065f46', borderRadius: '6px', fontSize: '11px', fontWeight: '700' }}>
+                              🎗️ Koruma Bandı
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <div style={{
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                    fontWeight: '700',
+                    backgroundColor: order.status === 'Onaylandı' ? 'rgba(42, 157, 143, 0.1)' : 
+                                     order.status === 'Reddedildi' ? 'rgba(230, 57, 70, 0.1)' : 'rgba(244, 162, 97, 0.1)',
+                    color: order.status === 'Onaylandı' ? 'var(--success)' : 
+                           order.status === 'Reddedildi' ? 'var(--error)' : 'var(--warning)'
+                  }}>
+                    {order.status === 'Onaylandı' ? 'ONAYLANDI' : 
+                     order.status === 'Reddedildi' ? 'REDDEDİLDİ' : 'TASLAK'}
+                  </div>
+                  <button 
+                    onClick={() => handleDelete(order.id)}
+                    style={{ 
+                      padding: '6px', 
+                      background: 'none', 
+                      border: 'none', 
+                      color: '#9CA3AF', 
+                      cursor: 'pointer',
+                      borderRadius: '6px',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#FEE2E2'; e.currentTarget.style.color = 'var(--error)'; }}
+                    onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#9CA3AF'; }}
+                    title="Siparişi Sil"
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
-                <button 
-                  onClick={() => handleDelete(order.id)}
-                  style={{ 
-                    padding: '6px', 
-                    background: 'none', 
-                    border: 'none', 
-                    color: '#9CA3AF', 
-                    cursor: 'pointer',
-                    borderRadius: '6px',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#FEE2E2'; e.currentTarget.style.color = 'var(--error)'; }}
-                  onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#9CA3AF'; }}
-                  title="Siparişi Sil"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
+
             </div>
             <div style={{ 
               display: 'grid', 
