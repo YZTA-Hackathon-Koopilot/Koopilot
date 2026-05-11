@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { AlertCircle, BarChart3, MessageSquare, TrendingUp, Sparkles, Lightbulb, Zap, ShieldCheck } from 'lucide-react';
+import { AlertCircle, BarChart3, MessageSquare, TrendingUp, Sparkles, Lightbulb, Zap, ShieldCheck, RotateCw } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { getDailySummary } from '../services/api';
 
@@ -14,19 +14,27 @@ const DailySummary = () => {
   const [summary, setSummary] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [timeRange, setTimeRange] = useState('daily');
+  const [lastUpdated, setLastUpdated] = useState(new Date());
+
+  const fetchSummary = async (isManual = false) => {
+    if (isManual) setIsLoading(true);
+    try {
+      const data = await getDailySummary();
+      setSummary(data);
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error('Özet verisi çekilemedi:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchSummary = async () => {
-      try {
-        const data = await getDailySummary();
-        setSummary(data);
-      } catch (error) {
-        console.error('Özet verisi çekilemedi:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchSummary();
+    const interval = setInterval(() => {
+      fetchSummary();
+    }, 15000); // 15 saniyede bir otomatik yenile
+    return () => clearInterval(interval);
   }, []);
 
   if (isLoading) return <div style={{ padding: '24px' }}>Yükleniyor...</div>;
@@ -51,11 +59,48 @@ const DailySummary = () => {
         overflow: 'hidden',
         border: '2px solid rgba(82, 183, 136, 0.3)'
       }}>
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <h2 style={{ color: 'var(--primary-dark)', fontSize: '28px', marginBottom: '8px' }}>Günün Özeti</h2>
-          <p style={{ color: 'var(--text-dark)', opacity: 0.9, fontSize: '16px', maxWidth: '80%' }}>
-            {summary.summary_text}
-          </p>
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <h2 style={{ color: 'var(--primary-dark)', fontSize: '28px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              Günün Özeti
+              <button 
+                onClick={() => fetchSummary(true)} 
+                title="Verileri Yenile"
+                className="hover-scale"
+                style={{ 
+                  background: 'none', 
+                  border: 'none', 
+                  cursor: 'pointer', 
+                  color: 'var(--primary-mid)', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  padding: '4px',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(82, 183, 136, 0.1)'
+                }}
+              >
+                <RotateCw size={18} className={isLoading ? 'spin-animation' : ''} />
+              </button>
+            </h2>
+            <p style={{ color: 'var(--text-dark)', opacity: 0.9, fontSize: '16px', maxWidth: '85%', lineHeight: 1.5 }}>
+              {summary.summary_text}
+            </p>
+            <div style={{ 
+              marginTop: '12px', 
+              fontSize: '12px', 
+              color: 'var(--text-light)', 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '6px',
+              backgroundColor: 'rgba(0,0,0,0.03)',
+              padding: '4px 10px',
+              borderRadius: '20px',
+              width: 'fit-content'
+            }}>
+              <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--success)', animation: 'pulse 2s infinite' }}></div>
+              Canlı Takip Aktif • Son güncelleme: {lastUpdated.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            </div>
+          </div>
         </div>
         <BarChart3 size={120} style={{
           position: 'absolute',

@@ -634,7 +634,40 @@ input:focus, textarea:focus {
   .login-hero-secondary {
     width: 100%;
   }
-  .login-access-card {
-    padding: 20px;
   }
+
+/* Modal Styles - Tam Ekran Zorlama */
+.modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background-color: rgba(0, 0, 0, 0.75) !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  z-index: 999999 !important;
+  backdrop-filter: blur(12px) !important;
+  /* Eğer bir transform içindeyse ekranın ortasına zorla */
+  transform: none !important;
+}
+
+.modal-container {
+  background-color: var(--surface) !important;
+  padding: 32px !important;
+  border-radius: 28px !important;
+  width: 90% !important;
+  max-width: 500px !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+  border: 1px solid var(--border-color) !important;
+  animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* Kendi içinde merkezlenmeyi garanti et */
+  position: relative !important;
+  z-index: 1000000 !important;
+}
+
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }

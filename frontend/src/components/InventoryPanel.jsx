@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { getInventory, updateProduct, createProduct } from '../services/api';
+import { createPortal } from 'react-dom';
+import { getInventory, updateProduct, createProduct, uploadInventory } from '../services/api';
 import { Package, AlertTriangle, TrendingUp, Search, Plus, Edit2, Save, X, Upload, Download, FileSpreadsheet } from 'lucide-react';
-import { uploadInventory } from '../services/api';
+
 const InventoryPanel = ({ searchTerm }) => {
   const [inventory, setInventory] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -17,10 +18,12 @@ const InventoryPanel = ({ searchTerm }) => {
   });
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = React.useRef(null);
+
   const filteredInventory = inventory.filter(item => 
     item.name.toLowerCase().includes((searchTerm || '').toLowerCase()) ||
     item.category.toLowerCase().includes((searchTerm || '').toLowerCase())
   );
+
   const fetchInventory = async () => {
     try {
       const data = await getInventory();
@@ -31,9 +34,11 @@ const InventoryPanel = ({ searchTerm }) => {
       setIsLoading(false);
     }
   };
+
   useEffect(() => {
     fetchInventory();
   }, []);
+
   const handleOpenModal = (product = null) => {
     if (product) {
       setEditingProduct(product);
@@ -58,6 +63,7 @@ const InventoryPanel = ({ searchTerm }) => {
     }
     setIsModalOpen(true);
   };
+
   const handleSave = async (e) => {
     e.preventDefault();
     try {
@@ -103,7 +109,9 @@ const InventoryPanel = ({ searchTerm }) => {
     link.click();
     document.body.removeChild(link);
   };
+
   if (isLoading) return <div style={{ padding: '24px' }}>Yükleniyor...</div>;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', position: 'relative' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -268,7 +276,7 @@ const InventoryPanel = ({ searchTerm }) => {
           </div>
         </div>
       </div>
-      {}
+
       <div className="glass-card" style={{
         backgroundColor: 'var(--white)',
         borderRadius: '24px',
@@ -338,29 +346,10 @@ const InventoryPanel = ({ searchTerm }) => {
           </tbody>
         </table>
       </div>
-      {}
-      {isModalOpen && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 1000,
-          backdropFilter: 'blur(4px)'
-        }}>
-          <div style={{
-            backgroundColor: 'var(--surface)',
-            padding: '32px',
-            borderRadius: '24px',
-            width: '100%',
-            maxWidth: '500px',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
-          }}>
+
+      {isModalOpen && createPortal(
+        <div className="modal-overlay">
+          <div className="modal-container">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <h3 style={{ margin: 0 }}>{editingProduct ? 'Ürün Düzenle' : 'Yeni Ürün Ekle'}</h3>
               <button onClick={() => setIsModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-light)' }}>
@@ -441,9 +430,11 @@ const InventoryPanel = ({ searchTerm }) => {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
 };
+
 export default InventoryPanel;
