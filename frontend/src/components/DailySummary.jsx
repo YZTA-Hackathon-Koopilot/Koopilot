@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { AlertCircle, BarChart3, MessageSquare, TrendingUp } from 'lucide-react';
+import { AlertCircle, BarChart3, MessageSquare, TrendingUp, Sparkles, Lightbulb, Zap, ShieldCheck } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { getDailySummary } from '../services/api';
 
@@ -157,6 +157,58 @@ const DailySummary = () => {
           </div>
           <div style={{ fontSize: '36px', fontWeight: 800, color: 'var(--error)' }}>{lowStockCount}</div>
           <div style={{ fontSize: '13px', color: 'var(--text-light)' }}>Stok durumu her zaman anlık veriyi yansıtır.</div>
+        </div>
+      </div>
+
+      <div style={{ marginTop: '8px' }}>
+        <h3 style={{ marginBottom: '16px', color: 'var(--text-dark)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Sparkles size={20} color="var(--primary-mid)" /> AI Akıllı Analizler
+        </h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+          {(summary.insights || []).map((insight, index) => {
+            const getIcon = () => {
+              switch (insight.type) {
+                case 'positive': return <ShieldCheck size={20} />;
+                case 'warning': return <AlertCircle size={20} />;
+                case 'success': return <Zap size={20} />;
+                case 'info': return <Lightbulb size={20} />;
+                default: return <Sparkles size={20} />;
+              }
+            };
+            const getColor = () => {
+              switch (insight.type) {
+                case 'positive': return 'var(--success)';
+                case 'warning': return 'var(--error)';
+                case 'success': return 'var(--primary-mid)';
+                case 'info': return 'var(--accent-earth)';
+                default: return 'var(--primary-light)';
+              }
+            };
+            return (
+              <div key={index} className="glass-card" style={{
+                padding: '20px',
+                borderRadius: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ 
+                    padding: '8px', 
+                    borderRadius: '10px', 
+                    backgroundColor: `${getColor()}15`, 
+                    color: getColor() 
+                  }}>
+                    {getIcon()}
+                  </div>
+                  <span style={{ fontWeight: 800, fontSize: '15px', color: 'var(--text-dark)' }}>{insight.title}</span>
+                </div>
+                <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-light)', lineHeight: 1.5 }}>
+                  {insight.text}
+                </p>
+              </div>
+            );
+          })}
         </div>
       </div>
 
