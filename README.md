@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-  <b>WhatsApp'tan gelen mesajı siparişe dönüştürür, stok kontrol eder, kargo sorularını cevaplar,<br/>yöneticiden onay alarak aksiyon üretir.</b>
+  <b>Web paneli ve mesaj kanallarından gelen müşteri mesajlarını siparişe dönüştürür,<br/>stok kontrol eder, kargo sorularını cevaplar ve yöneticiden onay alarak aksiyon üretir.</b>
 </p>
 
 ---
@@ -75,7 +75,7 @@ Müşteri Mesajı → AI Analiz → Niyet Çıkarımı → Aksiyon Önerisi → 
 
 ## 🎬 Demo Senaryosu
 
-### Senaryo: Müşteri WhatsApp'tan sipariş veriyor
+### Senaryo: Müşteri mesajından sipariş taslağı oluşuyor
 
 **1. Mesaj Gelir:**
 > "Merhaba, 2 kavanoz domates salçası ve 1 nar ekşisi almak istiyorum. Ankara'ya kargo olur mu?"
@@ -112,8 +112,8 @@ Müşteri Mesajı → AI Analiz → Niyet Çıkarımı → Aksiyon Önerisi → 
 ├─────────────────────────────────────────────────────────┤
 │                                                         │
 │  ┌──────────────┐    ┌──────────────┐    ┌───────────┐  │
-│  │  WhatsApp    │    │   Telegram   │    │   E-mail  │  │
-│  │  (Mock)      │    │   (Mock)     │    │  (Mock)   │  │
+│  │  WhatsApp    │    │   Telegram   │    │ Web Panel │  │
+│  │  Adapter     │    │   Bot API    │    │ Test Akışı│  │
 │  └──────┬───────┘    └──────┬───────┘    └─────┬─────┘  │
 │         │                   │                  │        │
 │         └───────────────────┼──────────────────┘        │
@@ -159,7 +159,7 @@ Müşteri Mesajı → AI Analiz → Niyet Çıkarımı → Aksiyon Önerisi → 
 └─────────────────────────────────────────────────────────┘
 ```
 
-> **Not:** Hackathon süresi nedeniyle kanal entegrasyonları (WhatsApp, Telegram, E-mail) **mock adapter** olarak tasarlanmıştır. Aynı mimari, gerçek API'lere (WhatsApp Business API, Telegram Bot API, SMTP) kolayca bağlanabilir.
+> **Dürüst entegrasyon notu:** Web panelindeki mesaj akışı canlı çalışır. Telegram Bot API opsiyonel gerçek kanal olarak desteklenir. WhatsApp Business API için backend webhook doğrulama, mesaj işleme ve cevap gönderme adaptörü hazırlanmıştır; ancak canlı WhatsApp hesabı/tokenları tanımlı değilse ürün gerçek WhatsApp mesajı alıp göndermez. Demo sırasında bu durum UI'daki **Kanallar** sayfasında açıkça gösterilir.
 
 ---
 
@@ -233,6 +233,7 @@ python -m pip install -r requirements.txt
 cp .env.example .env
 # .env dosyasını aç ve GEMINI_API_KEY değerini gir
 # Telegram gerçek kanal demosu için TELEGRAM_BOT_TOKEN değerini de ekleyebilirsin
+# WhatsApp altyapısı için WHATSAPP_* değerleri .env.example içinde yer alır; token yoksa canlı WhatsApp bağlı değildir
 
 # 5. Veritabanını başlat (demo verileriyle)
 python db_init.py
@@ -266,7 +267,7 @@ Hackathon demosu için önerilen canlı mimari:
 
 - Backend: Render Free Web Service
 - Frontend: Vercel, Netlify veya Render Static Site
-- Mesaj kanalı: Mock WhatsApp + opsiyonel Telegram Bot API
+- Mesaj kanalı: Web panel test akışı + opsiyonel Telegram Bot API + WhatsApp webhook altyapısı
 
 Backend için repo kökünde `render.yaml` bulunur. Render blueprint veya manuel kurulumda temel ayarlar:
 
@@ -317,6 +318,10 @@ Detaylı canlı demo planı için: [`docs/canli-demo-plani.md`](docs/canli-demo-
 | `GET` | `/health` | Canlı servis sağlık kontrolü |
 | `POST` | `/ai/analyze-message` | Müşteri mesajını AI ile analiz et, niyet çıkar, aksiyon öner |
 | `POST` | `/integrations/telegram/webhook` | Telegram mesajlarını Koopilot AI ajanına aktar |
+| `GET` | `/integrations/channels` | Mesaj kanallarının gerçek bağlantı durumunu listele |
+| `GET` | `/integrations/whatsapp/status` | WhatsApp entegrasyon durumunu göster |
+| `GET` | `/integrations/whatsapp/webhook` | WhatsApp Business webhook doğrulaması |
+| `POST` | `/integrations/whatsapp/webhook` | WhatsApp payload'ını Koopilot AI ajanına aktar |
 | `GET` | `/inventory` | Tüm ürünleri ve stok durumlarını listele |
 | `PUT` | `/inventory/{product_id}` | Ürün stok güncelle |
 | `POST` | `/inventory/upload` | Excel/CSV ile toplu ürün yükle |
@@ -375,7 +380,7 @@ YZTA-Hackathon-Koopilot/
 
 | Öncelik | Geliştirme | Açıklama |
 |---------|-----------|----------|
-| 🔴 | WhatsApp Business API | Gerçek WhatsApp mesaj alım/gönderimi |
+| 🟡 | WhatsApp Business API | Backend adaptörü hazır; canlı bağlantı için Meta token/telefon kurulumu gerekir |
 | 🔴 | Telegram Bot API | Telegram kanalı entegrasyonu |
 | 🟡 | Gerçek Kargo API | Aras, Yurtiçi, MNG kargo entegrasyonu |
 | 🟡 | Talep Tahmini | Geçmiş siparişlere dayalı ürün talep öngörüsü |

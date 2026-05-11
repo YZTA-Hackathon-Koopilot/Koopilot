@@ -6,6 +6,7 @@ import OrderPanel from './components/OrderPanel';
 import InventoryPanel from './components/InventoryPanel';
 import ShippingPanel from './components/ShippingPanel';
 import DailySummary from './components/DailySummary';
+import ChannelsPanel from './components/ChannelsPanel';
 
 const initialChatMessages = [
   { id: 1, type: 'ai', text: 'Merhaba! Ben Koopilot. Sipariş, stok veya kargo ile ilgili size nasıl yardımcı olabilirim? 🌿' }
@@ -106,6 +107,8 @@ function App() {
         return <DailySummary />;
       case 'shipping':
         return <ShippingPanel />;
+      case 'channels':
+        return <ChannelsPanel />;
       default:
         return (
           <MessagePanel
@@ -128,6 +131,7 @@ function App() {
       orders: 'Sipariş Yönetimi',
       inventory: 'Stok ve Envanter',
       shipping: 'Kargo Takibi',
+      channels: 'Kanal Bağlantıları',
       summary: 'Günlük Operasyon Özeti'
     };
     return titles[activeTab] || 'Dashboard';

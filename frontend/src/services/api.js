@@ -73,4 +73,12 @@ export const getDailySummary = async () => {
   const response = await api.get('/ai/daily-summary');
   return response.data;
 };
+export const getIntegrationChannels = async () => {
+  const response = await api.get('/integrations/channels');
+  return response.data;
+};
+export const getWhatsAppStatus = async () => {
+  const response = await api.get('/integrations/whatsapp/status');
+  return response.data;
+};
 export default api;

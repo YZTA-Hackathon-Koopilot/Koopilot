@@ -5,7 +5,7 @@ import {
   Package, 
   Truck, 
   BarChart3, 
-  Settings,
+  RadioTower,
   Leaf
 } from 'lucide-react';
 const Sidebar = ({ activeTab, setActiveTab }) => {
@@ -14,6 +14,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
     { id: 'orders', label: 'Siparişler', icon: <ShoppingCart size={20} /> },
     { id: 'inventory', label: 'Stok Yönetimi', icon: <Package size={20} /> },
     { id: 'shipping', label: 'Kargo Takip', icon: <Truck size={20} /> },
+    { id: 'channels', label: 'Kanallar', icon: <RadioTower size={20} /> },
     { id: 'summary', label: 'Günlük Özet', icon: <BarChart3 size={20} /> },
   ];
   return (

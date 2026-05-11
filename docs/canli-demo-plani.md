@@ -11,11 +11,11 @@ Hackathon tesliminde jüriye sadece video değil, çalışan bir web deneyimi de
 | Backend | Render Free Web Service | FastAPI için hızlı deploy, ücretsiz başlangıç, `/docs` gösterilebilir |
 | Frontend | Vercel veya Netlify | Vite/React için hızlı static deploy |
 | AI | Gemini 3.1 Flash-Lite | Düşük gecikmeli, yapılandırılmış çıktı ve hafif ajan görevleri için uygun |
-| Mesaj Kanalı | Mock WhatsApp + opsiyonel Telegram | WhatsApp maliyet/kurulum riskini azaltır, Telegram gerçek kanal demosu sağlar |
+| Mesaj Kanalı | Web panel test akışı + opsiyonel Telegram + WhatsApp adapter altyapısı | Olmayan canlı WhatsApp bağlantısını var gibi göstermeden, aynı AI ajan akışını güvenilir biçimde demo eder |
 
 ## Neden WhatsApp Gerçek API Değil?
 
-WhatsApp Business Platform gerçek entegrasyon için işletme/numara kurulumu, token, webhook ve mesajlaşma kuralları gerektirir. Hackathon süresinde bu alan yüksek riskli. Ürün içinde WhatsApp akışı mock adapter olarak gösterilmeli; README ve sunumda aynı mimarinin WhatsApp Business API'ye bağlanabileceği anlatılmalı.
+WhatsApp Business Platform gerçek entegrasyon için işletme/numara kurulumu, token, webhook ve mesajlaşma kuralları gerektirir. Hackathon süresinde bu alan yüksek riskli. Bu yüzden ürün içinde WhatsApp canlı bağlıymış gibi gösterilmeyecek. Bunun yerine backend'de gerçek entegrasyona hazır webhook/adaptör altyapısı bulunacak, UI'da da “WhatsApp canlı bağlantı yok; web panelinden test ediliyor” bilgisi açıkça gösterilecek.
 
 ## Neden Telegram?
 
@@ -40,6 +40,10 @@ Environment variables:
 ```env
 GEMINI_API_KEY=...
 TELEGRAM_BOT_TOKEN=...
+WHATSAPP_ACCESS_TOKEN=
+WHATSAPP_PHONE_NUMBER_ID=
+WHATSAPP_VERIFY_TOKEN=
+WHATSAPP_API_VERSION=v20.0
 ```
 
 Canlı backend kontrol adresleri:
@@ -136,9 +140,10 @@ Beklenen sonuç:
 
 - Render free servis uykuya geçebilir; demo başlamadan 2-3 dakika önce `/health` ve `/docs` açılarak uyandırılmalı.
 - Telegram token yoksa webhook yine analiz sonucunu JSON döner ama Telegram'a cevap göndermez.
-- WhatsApp gerçek API yerine UI'daki mock mesaj akışı gösterilmeli.
+- WhatsApp gerçek API canlı bağlı değilse bu açıkça söylenmeli; UI'daki Kanallar sayfasında “Canlı bağlantı yok” durumu gösterilmeli.
+- Mesajlar sayfasındaki web panel test akışı, WhatsApp mesajının gerçek kanaldan geldiği izlenimi verilmeden kullanılmalı.
 - Canlı demo patlarsa video ve lokal çalışan demo yedek plan olarak hazır olmalı.
 
 ## Kazandıran Anlatım
 
-> Koopilot bugün web panelinden ve Telegram gibi gerçek mesaj kanallarından gelen müşteri mesajlarını aynı AI ajan hattına alabiliyor. WhatsApp entegrasyonu hackathon süresi için mock adapter olarak gösterildi; mimari aynı webhook yapısıyla WhatsApp Business API'ye bağlanabilir.
+> Koopilot bugün web panelindeki test akışından ve token tanımlanırsa Telegram gibi gerçek mesaj kanallarından gelen müşteri mesajlarını aynı AI ajan hattına alabiliyor. WhatsApp için canlı Business API bağlantısı şu an aktif değil; ancak backend'de webhook doğrulama, gelen mesajı AI ajan hattına aktarma ve token tanımlanınca cevap gönderme adaptörü hazır. Demoda bu durumu saklamadan Kanallar sayfasında gösteriyoruz.

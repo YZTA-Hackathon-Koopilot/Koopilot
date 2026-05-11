@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, AlertCircle, ShoppingBag, History, Plus, Trash2, X } from 'lucide-react';
+import { Send, Bot, User, AlertCircle, ShoppingBag, History, Plus, Trash2, X, MessageCircle, Info } from 'lucide-react';
 import { analyzeMessage } from '../services/api';
 const MessagePanel = ({ messages, setMessages, isLoading, setIsLoading, sessionId, chatHistory, onNewChat, onLoadChat, onDeleteChat }) => {
   const [input, setInput] = useState('');
@@ -107,6 +107,37 @@ const MessagePanel = ({ messages, setMessages, isLoading, setIsLoading, sessionI
         flexDirection: 'column',
         gap: '20px'
       }}>
+        <div style={{
+          display: 'flex',
+          gap: '12px',
+          alignItems: 'flex-start',
+          padding: '14px 16px',
+          border: '1px solid var(--border-color)',
+          borderRadius: '16px',
+          backgroundColor: 'var(--surface-muted)',
+          color: 'var(--text-dark)'
+        }}>
+          <div style={{
+            width: '34px',
+            height: '34px',
+            borderRadius: '10px',
+            backgroundColor: 'rgba(42, 157, 143, 0.12)',
+            color: 'var(--success)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0
+          }}>
+            <MessageCircle size={18} />
+          </div>
+          <div>
+            <div style={{ fontWeight: 700, marginBottom: '4px' }}>WhatsApp test akışı</div>
+            <div style={{ fontSize: '13px', lineHeight: 1.5, color: 'var(--text-light)' }}>
+              Bu ekrandaki mesajlar gerçek WhatsApp'tan gelmiyor. Şu an web panelinden manuel test yapıyoruz; backend'de WhatsApp webhook altyapısı hazır, canlı bağlantı için Meta WhatsApp Business tokenları gerekiyor.
+            </div>
+          </div>
+          <Info size={17} style={{ color: 'var(--text-light)', marginLeft: 'auto', flexShrink: 0 }} />
+        </div>
         {messages.map((msg) => (
           <div key={msg.id} style={{
             display: 'flex',
