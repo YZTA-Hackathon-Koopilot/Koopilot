@@ -239,13 +239,7 @@ const InventoryPanel = ({ searchTerm }) => {
           </div>
 
           {/* 3 Stat Kartı */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: "20px",
-            }}
-          >
+          <div className="inventory-grid">
             <div
               className="glass-card"
               style={{

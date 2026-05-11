@@ -232,7 +232,7 @@ function App() {
   }
 
   if (!currentUser) {
-    return <Login onLogin={handleLogin} />;
+    return <Login onLogin={handleLogin} theme={theme} setTheme={setTheme} />;
   }
 
   return (

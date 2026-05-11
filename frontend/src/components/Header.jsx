@@ -31,157 +31,58 @@ const Header = ({ title, searchTerm, setSearchTerm, theme, setTheme, currentUser
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
   return (
-    <header style={{
-      height: 'var(--header-height)',
-      background: 'var(--glass-bg)',
-      backdropFilter: 'blur(16px)',
-      WebkitBackdropFilter: 'blur(16px)',
-      borderBottom: '1px solid var(--glass-border)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      padding: '0 24px',
-      position: 'relative',
-      zIndex: 10
-    }}>
-      <div style={{
-        minWidth: '220px',
-        maxWidth: '260px',
-        overflow: 'hidden',
-        whiteSpace: 'nowrap',
-        textOverflow: 'ellipsis',
-        zIndex: 2
-      }}>
-        <h2 style={{
-          fontSize: '20px',
-          margin: 0,
-          overflow: 'hidden',
-          whiteSpace: 'nowrap',
-          textOverflow: 'ellipsis'
-        }}>{title}</h2>
+    <header className="header">
+      <div className="header-title-container">
+        <h2 className="header-title">{title}</h2>
       </div>
-      <div style={{
-        position: 'absolute',
-        left: '50%',
-        top: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: 'clamp(260px, 42vw, 420px)',
-        zIndex: 1
-      }}>
-        <div style={{
-          position: 'relative',
-          display: 'flex',
-          alignItems: 'center',
-          width: '100%'
-        }}>
-          <Search size={18} style={{ position: 'absolute', left: '12px', color: 'var(--text-light)' }} />
+      <div className="header-search">
+        <div className="search-wrapper">
+          <Search size={18} className="search-icon" />
           <input 
             type="text" 
             placeholder="Ara..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{
-              paddingLeft: '38px',
-              backgroundColor: 'var(--surface-muted)',
-              color: 'var(--text-dark)',
-              border: '1px solid var(--border-color)',
-              width: '100%',
-              height: '40px'
-            }}
+            className="search-input"
           />
         </div>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', position: 'relative', zIndex: 2 }} ref={notificationRef}>
+      <div className="header-actions" ref={notificationRef}>
         <button
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           title={theme === 'dark' ? 'Açık moda geç' : 'Koyu moda geç'}
-          style={{
-            backgroundColor: 'var(--surface-muted)',
-            padding: '8px',
-            color: 'var(--text-dark)',
-            border: '1px solid var(--border-color)',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
+          className="theme-toggle"
         >
           {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
         </button>
         <button 
           onClick={() => setShowNotifications(!showNotifications)}
-          style={{
-            backgroundColor: 'var(--surface-muted)',
-            padding: '8px',
-            color: 'var(--text-dark)',
-            position: 'relative',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            transition: 'background-color 0.2s'
-          }}
-          onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--surface-soft)'}
-          onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'var(--surface-muted)'}
+          className={`notification-trigger ${alerts.length > 0 ? 'has-alerts' : ''}`}
         >
           <Bell size={20} />
-          {alerts.length > 0 && (
-            <span style={{
-              position: 'absolute',
-              top: '6px',
-              right: '6px',
-              width: '8px',
-              height: '8px',
-              backgroundColor: 'var(--error)',
-              borderRadius: '50%',
-              border: '2px solid var(--white)'
-            }}></span>
-          )}
+          {alerts.length > 0 && <span className="notification-dot"></span>}
         </button>
 
         {showNotifications && (
-          <div style={{
-            position: 'absolute',
-            top: '50px',
-            right: '0',
-            width: '320px',
-            backgroundColor: 'var(--surface-elevated)',
-            borderRadius: '16px',
-            boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
-            border: '1px solid var(--border-color)',
-            zIndex: 100,
-            overflow: 'hidden',
-            animation: 'fadeIn 0.2s ease-out'
-          }}>
-            <div style={{ padding: '16px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h4 style={{ margin: 0, fontSize: '16px' }}>Bildirimler</h4>
-              <span style={{ fontSize: '12px', color: 'var(--text-light)' }}>{alerts.length} Uyarı</span>
+          <div className="notifications-dropdown">
+            <div className="dropdown-header">
+              <h4>Bildirimler</h4>
+              <span className="alert-count">{alerts.length} Uyarı</span>
             </div>
-            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+            <div className="notifications-list">
               {alerts.length === 0 ? (
-                <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-light)' }}>
+                <div className="no-notifications">
                   Bildirim bulunmuyor.
                 </div>
               ) : (
                 alerts.map(alert => (
-                  <div key={alert.id} style={{
-                    padding: '12px 16px',
-                    borderBottom: '1px solid var(--border-color)',
-                    display: 'flex',
-                    gap: '12px',
-                    alignItems: 'start',
-                    backgroundColor: 'var(--surface-elevated)',
-                    transition: 'background-color 0.2s'
-                  }}
-                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--surface-muted)'}
-                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'var(--surface-elevated)'}
-                  >
-                    <div style={{ padding: '8px', backgroundColor: 'rgba(230, 57, 70, 0.1)', borderRadius: '8px', color: 'var(--error)' }}>
+                  <div key={alert.id} className="notification-item">
+                    <div className="notification-icon">
                       <AlertTriangle size={16} />
                     </div>
-                    <div>
-                      <div style={{ fontSize: '14px', fontWeight: '600' }}>Düşük Stok: {alert.name}</div>
-                      <div style={{ fontSize: '12px', color: 'var(--text-light)' }}>
+                    <div className="notification-content">
+                      <div className="notification-text">Düşük Stok: {alert.name}</div>
+                      <div className="notification-subtext">
                         Kalan stok: {alert.stock} {alert.unit}
                       </div>
                     </div>
@@ -190,8 +91,8 @@ const Header = ({ title, searchTerm, setSearchTerm, theme, setTheme, currentUser
               )}
             </div>
             {alerts.length > 0 && (
-              <div style={{ padding: '12px', textAlign: 'center', backgroundColor: 'var(--surface-muted)' }}>
-                <span style={{ fontSize: '12px', color: 'var(--primary-mid)', fontWeight: '600', cursor: 'pointer' }}>Tümünü Gör</span>
+              <div className="dropdown-footer">
+                <span onClick={() => setActiveTab('inventory')}>Tümünü Gör</span>
               </div>
             )}
           </div>
@@ -202,31 +103,13 @@ const Header = ({ title, searchTerm, setSearchTerm, theme, setTheme, currentUser
             setShowNotifications(false);
             onOpenProfile?.();
           }}
+          className="user-profile-trigger"
           title="Hesabım sayfasını aç"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            padding: '4px 4px 4px 12px',
-            backgroundColor: 'var(--surface-muted)',
-            borderRadius: '30px',
-            border: '1px solid var(--border-color)',
-            color: 'var(--text-dark)'
-          }}
         >
-          <span style={{ fontSize: '14px', fontWeight: '600', maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <span className="user-profile-name">
             {currentUser?.name || currentUser?.role || 'Hesabım'}
           </span>
-          <div style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: '50%',
-            backgroundColor: 'var(--primary-light)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'var(--primary-dark)'
-          }}>
+          <div className="user-profile-avatar">
             <User size={18} />
           </div>
         </button>

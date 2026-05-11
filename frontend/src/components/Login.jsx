@@ -7,6 +7,8 @@ import {
   Mail,
   MessageSquare,
   PackageCheck,
+  Sun,
+  Moon,
   Truck,
   User,
   UserPlus,
@@ -161,7 +163,7 @@ const ParticleNetwork = () => {
   );
 };
 
-const Login = ({ onLogin }) => {
+const Login = ({ onLogin, theme, setTheme }) => {
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -170,6 +172,10 @@ const Login = ({ onLogin }) => {
     password: "",
   });
   const [error, setError] = useState("");
+
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
 
   const getApiError = (apiError, fallback) => {
     return apiError?.response?.data?.detail || fallback;
@@ -236,6 +242,13 @@ const Login = ({ onLogin }) => {
 
   return (
     <div className="login-hero-shell">
+      <button 
+        onClick={toggleTheme} 
+        className="theme-toggle-login"
+        title={theme === "dark" ? "Aydınlık Moda Geç" : "Karanlık Moda Geç"}
+      >
+        {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+      </button>
       <div className="login-bg" aria-hidden="true">
         <ParticleNetwork />
         <div className="login-bg-blob login-bg-blob-1" />

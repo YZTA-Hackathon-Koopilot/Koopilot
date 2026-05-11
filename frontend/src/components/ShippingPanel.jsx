@@ -65,14 +65,7 @@ const ShippingPanel = () => {
     }
   };
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "24px",
-        maxWidth: "800px",
-      }}
-    >
+    <div className="shipping-container">
       <div
         className="glass-card"
         style={{
@@ -158,7 +151,7 @@ const ShippingPanel = () => {
           >
             Aktif Sevkiyatlar ({activeShipments.length})
           </h4>
-          <div style={{ display: "grid", gap: "16px" }}>
+          <div className="shipments-grid">
             {activeShipments.length > 0 ? (
               activeShipments.map((shipment) => (
                 <div
@@ -318,16 +311,7 @@ const ShippingPanel = () => {
               {selectedShipment.carrier || "Piyasa Kargo"}
             </div>
           </div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: "24px",
-              padding: "24px",
-              backgroundColor: "var(--surface-muted)",
-              borderRadius: "20px",
-            }}
-          >
+          <div className="shipping-details-grid">
             <div style={{ display: "flex", gap: "12px" }}>
               <Calendar size={20} color="var(--primary-mid)" />
               <div>

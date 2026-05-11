@@ -26,119 +26,40 @@ const Sidebar = ({ activeTab, setActiveTab, currentUser, onLogout }) => {
     { id: 'calendar', label: 'Takvim', icon: <Calendar size={20} /> },
   ];
   return (
-    <div style={{
-      width: 'var(--sidebar-width)',
-      backgroundColor: 'var(--sidebar-bg)',
-      backdropFilter: 'blur(20px)',
-      WebkitBackdropFilter: 'blur(20px)',
-      borderRight: '1px solid var(--glass-border)',
-      color: 'var(--sidebar-text)',
-      display: 'flex',
-      flexDirection: 'column',
-      padding: '24px 16px',
-      height: '100%',
-      position: 'relative',
-      zIndex: 10,
-      overflowX: 'hidden'
-    }}>
-      <div className="sidebar-brand" style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-        marginBottom: '48px',
-        padding: '0 8px'
-      }}>
-        <div className="brand-logo" style={{
-          backgroundColor: 'white',
-          padding: '8px',
-          borderRadius: '12px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
+    <div className="sidebar">
+      <div className="sidebar-brand">
+        <div className="brand-logo">
           <img src={logoUrl} alt="Koopilot" style={{ width: "24px", height: "24px", objectFit: "contain" }} />
         </div>
         <div className="brand-text">
-          <h1 style={{ color: 'var(--sidebar-text)', fontSize: '24px', margin: 0, fontFamily: '"Fredoka", sans-serif', fontWeight: 600 }}>Koopilot</h1>
+          <h1 className="sidebar-brand-text">Koopilot</h1>
         </div>
       </div>
-      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', overflowX: 'hidden' }}>
+      <nav className="sidebar-nav">
         {menuItems.map((item) => (
           <button
             key={item.id}
             onClick={() => setActiveTab(item.id)}
-            className="sidebar-nav-item"
-            style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              padding: '12px 16px',
-              backgroundColor: activeTab === item.id ? 'var(--primary-mid)' : 'transparent',
-              color: 'var(--sidebar-text)',
-              textAlign: 'left',
-              borderRadius: '12px',
-              border: 'none',
-              fontSize: '16px',
-              fontWeight: activeTab === item.id ? '600' : '400',
-              transition: 'background-color 0.2s'
-            }}
+            className={`sidebar-nav-item ${activeTab === item.id ? 'active' : ''}`}
           >
             {item.icon}
-            {item.label}
+            <span className="sidebar-item-label">{item.label}</span>
           </button>
         ))}
       </nav>
-      <div style={{
-        marginTop: '16px',
-        padding: '10px',
-        backgroundColor: 'rgba(255,255,255,0.05)',
-        borderRadius: '14px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px'
-      }}>
+      <div className="sidebar-footer">
         <button
           type="button"
           onClick={() => setActiveTab('settings')}
+          className="sidebar-footer-user"
           title="Profil sayfasını aç"
-          style={{
-            flex: 1,
-            minWidth: 0,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            padding: '8px',
-            backgroundColor: 'transparent',
-            color: 'var(--sidebar-text)',
-            borderRadius: '10px',
-            textAlign: 'left'
-          }}
         >
-          <span style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: '50%',
-            backgroundColor: 'rgba(82, 183, 136, 0.2)',
-            color: 'var(--primary-light)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0
-          }}>
+          <span className="user-avatar">
             <User size={17} />
           </span>
-          <span style={{ minWidth: 0 }}>
-            <span style={{ display: 'block', fontSize: '11px', opacity: 0.65, lineHeight: 1.2 }}>Hoş geldiniz</span>
-            <span style={{
-              display: 'block',
-              fontSize: '13px',
-              fontWeight: 800,
-              color: 'var(--primary-light)',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis'
-            }}>
+          <span className="user-info">
+            <span className="user-welcome">Hoş geldiniz</span>
+            <span className="user-name">
               {currentUser?.name || 'Kooperatif Paneli'}
             </span>
           </span>
@@ -146,20 +67,9 @@ const Sidebar = ({ activeTab, setActiveTab, currentUser, onLogout }) => {
         <button
           type="button"
           onClick={onLogout}
+          className="logout-button"
           title="Çıkış yap"
           aria-label="Çıkış yap"
-          style={{
-            width: '36px',
-            height: '36px',
-            backgroundColor: 'rgba(230, 57, 70, 0.1)',
-            color: 'var(--error)',
-            border: '1px solid rgba(230, 57, 70, 0.2)',
-            borderRadius: '10px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0
-          }}
         >
           <LogOut size={18} />
         </button>

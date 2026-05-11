@@ -322,13 +322,7 @@ const DailySummary = () => {
         </div>
       )}
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-          gap: "20px",
-        }}
-      >
+      <div className="daily-summary-grid">
         <div
           className="glass-card"
           style={{

@@ -70,13 +70,7 @@ const OrderPanel = () => {
   if (isLoading) return <OrderSkeleton />;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(400px, 1fr))",
-          gap: "20px",
-        }}
-      >
+      <div className="orders-grid">
         {orders.map((order) => (
           <div
             key={order.id}
