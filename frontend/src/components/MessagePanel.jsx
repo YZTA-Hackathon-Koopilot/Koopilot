@@ -38,7 +38,7 @@ const MessagePanel = ({ messages, setMessages, isLoading, setIsLoading, sessionI
     }
   };
   return (
-    <div style={{
+    <div className="glass-card" style={{
       display: 'flex',
       flexDirection: 'column',
       height: '100%',

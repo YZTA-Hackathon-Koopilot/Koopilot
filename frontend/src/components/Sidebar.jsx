@@ -6,9 +6,11 @@ import {
   Truck, 
   BarChart3, 
   RadioTower,
+  Settings,
+  Calendar,
   Leaf
 } from 'lucide-react';
-const Sidebar = ({ activeTab, setActiveTab }) => {
+const Sidebar = ({ activeTab, setActiveTab, currentUser, onLogout }) => {
   const menuItems = [
     { id: 'messages', label: 'Mesajlar', icon: <MessageSquare size={20} /> },
     { id: 'orders', label: 'Siparişler', icon: <ShoppingCart size={20} /> },
@@ -16,16 +18,23 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
     { id: 'shipping', label: 'Kargo Takip', icon: <Truck size={20} /> },
     { id: 'channels', label: 'Kanallar', icon: <RadioTower size={20} /> },
     { id: 'summary', label: 'Günlük Özet', icon: <BarChart3 size={20} /> },
+    { id: 'calendar', label: 'Takvim', icon: <Calendar size={20} /> },
+    { id: 'settings', label: 'Hesabım', icon: <Settings size={20} /> },
   ];
   return (
     <div style={{
       width: 'var(--sidebar-width)',
       backgroundColor: 'var(--sidebar-bg)',
-      color: 'var(--on-primary)',
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
+      borderRight: '1px solid var(--glass-border)',
+      color: 'var(--sidebar-text)',
       display: 'flex',
       flexDirection: 'column',
       padding: '24px 16px',
-      height: '100%'
+      height: '100%',
+      position: 'relative',
+      zIndex: 10
     }}>
       <div style={{
         display: 'flex',
@@ -44,9 +53,9 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
         }}>
           <Leaf size={24} color="var(--primary-dark)" fill="var(--primary-dark)" />
         </div>
-        <h1 style={{ color: 'var(--on-primary)', fontSize: '24px', margin: 0 }}>Koopilot</h1>
+        <h1 style={{ color: 'var(--sidebar-text)', fontSize: '24px', margin: 0 }}>Koopilot</h1>
       </div>
-      <nav style={{ flex: 1 }}>
+      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto' }}>
         {menuItems.map((item) => (
           <button
             key={item.id}
@@ -58,8 +67,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
               gap: '12px',
               padding: '12px 16px',
               backgroundColor: activeTab === item.id ? 'var(--primary-mid)' : 'transparent',
-              color: 'var(--on-primary)',
-              marginBottom: '8px',
+              color: 'var(--sidebar-text)',
               textAlign: 'left',
               borderRadius: '12px',
               border: 'none',
@@ -74,14 +82,34 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
         ))}
       </nav>
       <div style={{
-        marginTop: 'auto',
+        marginTop: '16px',
         padding: '16px',
         backgroundColor: 'rgba(255,255,255,0.05)',
         borderRadius: '16px',
-        fontSize: '14px'
+        fontSize: '14px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px'
       }}>
-        <p style={{ opacity: 0.7, marginBottom: '4px' }}>Hoş Geldiniz,</p>
-        <p style={{ fontWeight: '600' }}>Kooperatif Paneli</p>
+        <div>
+          <p style={{ opacity: 0.7, marginBottom: '4px' }}>Hoş Geldiniz,</p>
+          <p style={{ fontWeight: '700', color: 'var(--primary-light)' }}>{currentUser?.name || 'Kooperatif Paneli'}</p>
+        </div>
+        <button
+          type="button"
+          onClick={onLogout}
+          style={{
+            padding: '10px 12px',
+            backgroundColor: 'rgba(230, 57, 70, 0.1)',
+            color: 'var(--error)',
+            border: '1px solid rgba(230, 57, 70, 0.2)',
+            borderRadius: '10px',
+            fontWeight: '700',
+            textAlign: 'center'
+          }}
+        >
+          Çıkış Yap
+        </button>
       </div>
     </div>
   );

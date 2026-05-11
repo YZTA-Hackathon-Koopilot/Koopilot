@@ -12,8 +12,10 @@
   --surface-soft: #F3F4F6;
   --surface-elevated: #FFFFFF;
   --message-ai-bg: #F3F4F6;
-  --sidebar-bg: #1B4332;
+  --sidebar-bg: rgba(27, 67, 50, 0.9);
+  --sidebar-text: #FFFFFF;
   --shadow-soft: 0 4px 20px rgba(0,0,0,0.05);
+  --shadow-hover: 0 8px 30px rgba(0,0,0,0.08);
   --text-dark: #2D2D2D;
   --text-light: #6B7280;
   --error: #E63946;
@@ -21,7 +23,11 @@
   --success: #2A9D8F;
   --border-color: #E5E7EB;
   --sidebar-width: 260px;
-  --header-height: 64px;
+  --header-height: 72px;
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-bg-hover: rgba(255, 255, 255, 0.86);
+  --glass-border: rgba(255, 255, 255, 0.46);
+  --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.07);
   font-family: 'Inter', sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -41,11 +47,17 @@
   --surface-soft: #263244;
   --surface-elevated: #172033;
   --message-ai-bg: #1F2937;
-  --sidebar-bg: #071B14;
+  --sidebar-bg: rgba(7, 27, 20, 0.9);
+  --sidebar-text: #F8FAFC;
   --shadow-soft: 0 8px 26px rgba(0,0,0,0.35);
+  --shadow-hover: 0 12px 40px rgba(0,0,0,0.45);
   --text-dark: #E5E7EB;
   --text-light: #9CA3AF;
   --border-color: #374151;
+  --glass-bg: rgba(15, 23, 42, 0.74);
+  --glass-bg-hover: rgba(15, 23, 42, 0.86);
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 * {
   box-sizing: border-box;
@@ -58,6 +70,19 @@ body {
   background-color: var(--bg-cream);
   color: var(--text-dark);
 }
+.glass-card {
+  background: var(--glass-bg) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  transition: box-shadow 0.25s ease, border-color 0.25s ease, background-color 0.25s ease;
+}
+.glass-card:hover {
+  box-shadow: var(--shadow-hover), 0 12px 28px rgba(82, 183, 136, 0.1) !important;
+  border-color: rgba(82, 183, 136, 0.34) !important;
+  background: var(--glass-bg-hover) !important;
+}
 h1, h2, h3, h4 {
   font-family: 'Outfit', sans-serif;
   font-weight: 600;
@@ -66,19 +91,23 @@ h1, h2, h3, h4 {
 button {
   cursor: pointer;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   font-family: inherit;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 input, textarea {
   font-family: inherit;
   border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 8px 12px;
+  border-radius: 12px;
+  padding: 10px 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  background-color: var(--surface);
+  color: var(--text-dark);
 }
 input:focus, textarea:focus {
-  outline: 2px solid var(--primary-light);
-  border-color: transparent;
+  outline: none;
+  border-color: var(--primary-light);
+  box-shadow: 0 0 0 3px rgba(82, 183, 136, 0.2);
 }
 .dashboard-layout {
   display: flex;
@@ -91,7 +120,7 @@ input:focus, textarea:focus {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background-color: var(--bg-cream);
+  background-color: transparent;
 }
 .content-area {
   flex: 1;

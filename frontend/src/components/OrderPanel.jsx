@@ -52,7 +52,7 @@ const OrderPanel = () => {
         gap: '20px'
       }}>
         {orders.map((order) => (
-          <div key={order.id} style={{
+          <div key={order.id} className="glass-card" style={{
             backgroundColor: 'var(--white)',
             borderRadius: '20px',
             padding: '24px',

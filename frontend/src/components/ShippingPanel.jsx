@@ -48,7 +48,7 @@ const ShippingPanel = () => {
   };
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '800px' }}>
-      <div style={{
+      <div className="glass-card" style={{
         backgroundColor: 'var(--white)',
         padding: '32px',
         borderRadius: '24px',
@@ -109,6 +109,7 @@ const ShippingPanel = () => {
               activeShipments.map((shipment) => (
                 <div 
                   key={shipment.order_id}
+                  className="glass-card"
                   onClick={() => setSelectedShipment(shipment)}
                   style={{
                     backgroundColor: 'var(--white)',
@@ -151,7 +152,7 @@ const ShippingPanel = () => {
           </div>
         </div>
       ) : (
-        <div style={{
+        <div className="glass-card" style={{
           backgroundColor: 'var(--white)',
           padding: '32px',
           borderRadius: '24px',

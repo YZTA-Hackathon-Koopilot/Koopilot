@@ -7,6 +7,9 @@ import InventoryPanel from './components/InventoryPanel';
 import ShippingPanel from './components/ShippingPanel';
 import DailySummary from './components/DailySummary';
 import ChannelsPanel from './components/ChannelsPanel';
+import CalendarPanel from './components/CalendarPanel';
+import Login from './components/Login';
+import SettingsPanel from './components/SettingsPanel';
 
 const initialChatMessages = [
   { id: 1, type: 'ai', text: 'Merhaba! Ben Koopilot. Sipariş, stok veya kargo ile ilgili size nasıl yardımcı olabilirim? 🌿' }
@@ -35,6 +38,13 @@ function App() {
   const [chatHistory, setChatHistory] = useState(() => {
     return readStoredJson('koopilot_chat_history', []);
   });
+  const [currentUser, setCurrentUser] = useState(() => {
+    return readStoredJson('koopilot_current_user', null);
+  });
+
+  useEffect(() => {
+    localStorage.setItem('koopilot_current_user', JSON.stringify(currentUser));
+  }, [currentUser]);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -109,6 +119,10 @@ function App() {
         return <ShippingPanel />;
       case 'channels':
         return <ChannelsPanel />;
+      case 'calendar':
+        return <CalendarPanel />;
+      case 'settings':
+        return <SettingsPanel currentUser={currentUser} onUserUpdate={setCurrentUser} />;
       default:
         return (
           <MessagePanel
@@ -132,13 +146,25 @@ function App() {
       inventory: 'Stok ve Envanter',
       shipping: 'Kargo Takibi',
       channels: 'Kanal Bağlantıları',
-      summary: 'Günlük Operasyon Özeti'
+      summary: 'Günlük Operasyon Özeti',
+      calendar: 'Takvim & Görev Takibi',
+      settings: 'Hesabım & Güvenlik'
     };
     return titles[activeTab] || 'Dashboard';
   };
+
+  if (!currentUser) {
+    return <Login onLogin={setCurrentUser} />;
+  }
+
   return (
     <div className="dashboard-layout">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        currentUser={currentUser}
+        onLogout={() => setCurrentUser(null)}
+      />
       <div className="main-container">
         <Header 
           title={getTitle()} 

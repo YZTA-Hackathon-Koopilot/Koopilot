@@ -174,9 +174,49 @@ const InventoryPanel = ({ searchTerm }) => {
           </button>
         </div>
       </div>
-      {}
+
+      {inventory.filter(item => item.stock < 5).length > 0 && (
+        <div className="glass-card" style={{
+          backgroundColor: 'rgba(230, 57, 70, 0.1)',
+          borderLeft: '4px solid var(--error)',
+          padding: '20px 24px',
+          borderRadius: '16px',
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '16px',
+          animation: 'fadeIn 0.4s ease-out'
+        }}>
+          <div style={{ color: 'var(--error)', marginTop: '2px' }}>
+            <AlertTriangle size={28} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <h3 style={{ color: 'var(--error)', margin: '0 0 8px', fontSize: '18px', fontWeight: 800 }}>
+              Kritik Stok Uyarısı
+            </h3>
+            <p style={{ margin: 0, color: 'var(--text-dark)', fontSize: '15px', lineHeight: 1.5 }}>
+              Aşağıdaki ürünlerin stoğu tükenmek üzere. Lütfen en kısa sürede tedarik planlaması yapın:
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px' }}>
+              {inventory.filter(item => item.stock < 5).map(item => (
+                <span key={item.id} style={{
+                  backgroundColor: 'rgba(230, 57, 70, 0.15)',
+                  color: 'var(--error)',
+                  padding: '6px 12px',
+                  borderRadius: '20px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  border: '1px solid rgba(230, 57, 70, 0.3)'
+                }}>
+                  {item.name} ({item.stock} {item.unit})
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
-        <div style={{
+        <div className="glass-card" style={{
           backgroundColor: 'var(--white)',
           padding: '24px',
           borderRadius: '20px',
@@ -193,7 +233,7 @@ const InventoryPanel = ({ searchTerm }) => {
             <div style={{ fontSize: '24px', fontWeight: '700' }}>{filteredInventory.length}</div>
           </div>
         </div>
-        <div style={{
+        <div className="glass-card" style={{
           backgroundColor: 'var(--white)',
           padding: '24px',
           borderRadius: '20px',
@@ -210,7 +250,7 @@ const InventoryPanel = ({ searchTerm }) => {
             <div style={{ fontSize: '24px', fontWeight: '700' }}>{filteredInventory.filter(i => i.stock < 5).length}</div>
           </div>
         </div>
-        <div style={{
+        <div className="glass-card" style={{
           backgroundColor: 'var(--white)',
           padding: '24px',
           borderRadius: '20px',
@@ -229,7 +269,7 @@ const InventoryPanel = ({ searchTerm }) => {
         </div>
       </div>
       {}
-      <div style={{
+      <div className="glass-card" style={{
         backgroundColor: 'var(--white)',
         borderRadius: '24px',
         padding: '24px',
@@ -388,7 +428,7 @@ const InventoryPanel = ({ searchTerm }) => {
                 <button 
                   type="button" 
                   onClick={() => setIsModalOpen(false)}
-                  style={{ flex: 1, padding: '14px', borderRadius: '12px', border: '1px solid var(--border-color)', background: 'var(--surface)', cursor: 'pointer' }}
+                  style={{ flex: 1, padding: '14px', borderRadius: '12px', border: '1px solid var(--border-color)', background: 'var(--surface)', color: 'var(--text-dark)', fontWeight: 600, cursor: 'pointer' }}
                 >
                   İptal
                 </button>

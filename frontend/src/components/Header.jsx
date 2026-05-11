@@ -33,8 +33,10 @@ const Header = ({ title, searchTerm, setSearchTerm, theme, setTheme }) => {
   return (
     <header style={{
       height: 'var(--header-height)',
-      backgroundColor: 'var(--surface)',
-      borderBottom: '1px solid var(--border-color)',
+      background: 'var(--glass-bg)',
+      backdropFilter: 'blur(16px)',
+      WebkitBackdropFilter: 'blur(16px)',
+      borderBottom: '1px solid var(--glass-border)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
