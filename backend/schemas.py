@@ -39,6 +39,7 @@ class OrderResponse(OrderBase):
     items: List[OrderItemResponse]
     missing_info: Optional[str] = None
     ai_reply_draft: Optional[str] = None
+    packaging_hint: Optional[str] = None
     class Config:
         from_attributes = True
 class MessageRequest(BaseModel):

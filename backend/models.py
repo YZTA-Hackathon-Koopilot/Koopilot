@@ -57,6 +57,46 @@ class Order(Base):
     shipping_status = Column(String, default="Hazırlanıyor")
     shipping_updated_at = Column(DateTime, nullable=True)
     items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
+
+    @property
+    def packaging_hint(self):
+        if not self.items:
+            return None
+            
+        fragile_products = []
+        has_fragile = False
+        has_liquid = False
+        has_food = False
+        
+        for item in self.items:
+            if not item.product: continue
+            category = (item.product.category or "").lower()
+            name = (item.product.name or "").lower()
+            
+            is_fragile = any(k in category or k in name for k in ["cam", "kırılabilir", "kirilabilir", "hassas", "glass", "porselen"])
+            is_liquid = any(k in category or k in name for k in ["sıvı", "sivi", "yağ", "sos", "liquid", "zeytinyağı"])
+            is_food = any(k in category or k in name for k in ["gıda", "gida", "yemek", "taze", "food", "reçel", "salça"])
+            
+            if is_fragile:
+                fragile_products.append(item.product.name)
+                has_fragile = True
+            if is_liquid:
+                has_liquid = True
+            if is_food:
+                has_food = True
+                
+        if not has_fragile and not has_liquid and not has_food:
+            return None
+            
+        if has_fragile:
+            p_names = ", ".join(fragile_products[:2])
+            return f"Bu sipariş {p_names} gibi hassas ürünler içeriyor. Kırılmaması için pıtpıt naylon ve çift katmanlı 20x20 kolileme yapmanızı öneririm."
+        elif has_liquid:
+            return "Bu sipariş sıvı ürünler içeriyor. Sızıntı riskine karşı şişe ağızlarını bantlamanızı ve dik şekilde paketlemenizi öneririm."
+        elif has_food:
+            return "Bu sipariş gıda ürünleri içeriyor. Tazeliğini koruması için hızlı paketleme ve uygun saklama koşullarına dikkat ediniz."
+            
+        return None
 class OrderItem(Base):
     __tablename__ = "order_items"
     id = Column(Integer, primary_key=True, index=True)

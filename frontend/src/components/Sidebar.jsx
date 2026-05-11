@@ -8,13 +8,16 @@ import {
   LogOut,
   User,
   Calendar,
-  Leaf
+  Leaf,
+  Wheat,
+  Trees,
+  Sprout
 } from 'lucide-react';
 const Sidebar = ({ activeTab, setActiveTab, currentUser, onLogout }) => {
   const menuItems = [
-    { id: 'messages', label: 'Mesajlar', icon: <MessageSquare size={20} /> },
-    { id: 'orders', label: 'Siparişler', icon: <ShoppingCart size={20} /> },
-    { id: 'inventory', label: 'Stok Yönetimi', icon: <Package size={20} /> },
+    { id: 'messages', label: 'Mesajlar', icon: <Sprout size={20} /> },
+    { id: 'orders', label: 'Siparişler', icon: <Wheat size={20} /> },
+    { id: 'inventory', label: 'Stok Yönetimi', icon: <Trees size={20} /> },
     { id: 'shipping', label: 'Kargo Takip', icon: <Truck size={20} /> },
     { id: 'channels', label: 'Kanallar', icon: <RadioTower size={20} /> },
     { id: 'summary', label: 'Günlük Özet', icon: <BarChart3 size={20} /> },
