@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AlertCircle, BarChart3, MessageSquare, TrendingUp, Sparkles, Lightbulb, Zap, ShieldCheck, RotateCw, Trophy, ShoppingBag, Tag, RefreshCw } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { getDailySummary, getInventoryInsights, getCampaignRecommendation } from '../services/api';
+import { DailySummarySkeleton } from './Skeleton';
 
 const COLORS = ['#52B788', '#2D6A4F', '#74C69D', '#D6B98C', '#F4A261', '#2A9D8F'];
 
@@ -20,7 +21,7 @@ const INTENT_MAP = {
 
 const formatIntent = (intent) => {
   if (INTENT_MAP[intent]) return INTENT_MAP[intent];
-  const label = intent.replace('_', ' ');
+  const label = intent.replace(/_/g, ' ');
   return label.charAt(0).toUpperCase() + label.slice(1);
 };
 
@@ -72,14 +73,14 @@ const DailySummary = () => {
     try {
       const data = await getCampaignRecommendation(product);
       setCampaignRec(prev => ({ ...prev, [product.id]: data.recommendation }));
-    } catch (error) {
+    } catch {
       setCampaignRec(prev => ({ ...prev, [product.id]: 'Öneri alınamadı. Lütfen tekrar deneyin.' }));
     } finally {
       setIsRecLoading(prev => ({ ...prev, [product.id]: false }));
     }
   };
 
-  if (isLoading) return <div style={{ padding: '24px' }}>Yükleniyor...</div>;
+  if (isLoading) return <DailySummarySkeleton />;
   if (!summary) return <div style={{ padding: '24px' }}>Veri bulunamadı.</div>;
 
   const multiplier = timeRange === 'daily' ? 1 : timeRange === 'monthly' ? 30 : 365;
@@ -316,7 +317,7 @@ const DailySummary = () => {
                 <span style={{ fontWeight: 800, fontSize: '16px' }}>En Çok Satan 5 Ürün (Son 7 Gün)</span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {insights?.best_sellers.map((p, idx) => (
+                {(insights?.best_sellers || []).map((p, idx) => (
                   <div key={p.id} style={{ 
                     display: 'flex', 
                     justifyContent: 'space-between', 
@@ -349,7 +350,7 @@ const DailySummary = () => {
                 <span style={{ fontWeight: 800, fontSize: '16px' }}>Dikkate Değer: Satış Bekleyen Ürünler</span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {insights?.non_sellers.map((p) => (
+                {(insights?.non_sellers || []).map((p) => (
                   <div key={p.id} style={{ 
                     padding: '16px', 
                     backgroundColor: 'var(--surface-muted)', 

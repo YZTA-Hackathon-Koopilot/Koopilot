@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Bell, User, Search, AlertTriangle, Moon, Sun } from 'lucide-react';
 import { getInventoryAlerts } from '../services/api';
 const Header = ({ title, searchTerm, setSearchTerm, theme, setTheme, currentUser, onOpenProfile }) => {

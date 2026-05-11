@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { CheckCircle2, Clock3, ExternalLink, MessageCircle, Send, Smartphone, XCircle } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { CheckCircle2, Clock3, MessageCircle, Send, Smartphone, XCircle } from 'lucide-react';
 import { getIntegrationChannels } from '../services/api';
 
 const fallbackChannels = {
@@ -169,7 +169,7 @@ const ChannelsPanel = () => {
       try {
         const data = await getIntegrationChannels();
         setChannels(data);
-      } catch (err) {
+      } catch {
         setError('Kanal durumu canlı backendden alınamadı; yedek durum bilgisi gösteriliyor.');
       }
     };

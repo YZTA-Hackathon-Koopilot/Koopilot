@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Calendar as CalendarIcon, CheckCircle2, ChevronLeft, ChevronRight, Circle, Plus, Trash2, X } from 'lucide-react';
 
 const WEEK_DAYS = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];

@@ -54,6 +54,34 @@ require_file() {
   fi
 }
 
+open_browser() {
+  local url="$1"
+
+  if command -v xdg-open >/dev/null 2>&1; then
+    xdg-open "$url" >/dev/null 2>&1 &
+  elif command -v open >/dev/null 2>&1; then
+    open "$url" >/dev/null 2>&1 &
+  elif command -v cmd.exe >/dev/null 2>&1; then
+    cmd.exe /c start "$url" >/dev/null 2>&1 &
+  else
+    echo "Tarayıcı otomatik açılamadı. Elle açın: $url"
+  fi
+}
+
+wait_for_frontend_and_open() {
+  local url="$1"
+
+  for _ in {1..30}; do
+    if curl -fsS "$url" >/dev/null 2>&1; then
+      open_browser "$url"
+      return
+    fi
+    sleep 1
+  done
+
+  echo "Frontend 30 saniye içinde hazır olmadı. Elle kontrol edin: $url"
+}
+
 require_file "$BACKEND_DIR/main.py"
 require_file "$FRONTEND_DIR/package.json"
 
@@ -94,5 +122,7 @@ PIDS+=("$!")
   npm run dev -- --host 127.0.0.1 --port "$FRONTEND_PORT"
 ) &
 PIDS+=("$!")
+
+wait_for_frontend_and_open "http://127.0.0.1:$FRONTEND_PORT/" &
 
 wait -n "${PIDS[@]}"

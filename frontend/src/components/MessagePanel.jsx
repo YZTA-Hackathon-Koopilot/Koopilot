@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, AlertCircle, ShoppingBag, History, Plus, Trash2, X, MessageCircle, Info } from 'lucide-react';
 import { analyzeMessage } from '../services/api';
 const MessagePanel = ({ messages, setMessages, isLoading, setIsLoading, sessionId, chatHistory, onNewChat, onLoadChat, onDeleteChat }) => {
@@ -26,7 +26,7 @@ const MessagePanel = ({ messages, setMessages, isLoading, setIsLoading, sessionI
         warnings: data.warnings
       };
       setMessages(prev => [...prev, aiMsg]);
-    } catch (error) {
+    } catch {
       setMessages(prev => [...prev, { 
         id: Date.now() + 1, 
         type: 'ai', 

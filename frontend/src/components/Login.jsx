@@ -148,7 +148,7 @@ const Login = ({ onLogin }) => {
           >
             {/* ÖN YÜZ — Giriş */}
             <div
-              className="login-card-face login-card-front glass-card"
+              className="login-card-face login-card-front"
               aria-hidden={!isLoginMode}
             >
               <div className="login-panel-header">
@@ -219,7 +219,7 @@ const Login = ({ onLogin }) => {
 
             {/* ARKA YÜZ — Kayıt */}
             <div
-              className="login-card-face login-card-back glass-card"
+              className="login-card-face login-card-back"
               aria-hidden={isLoginMode}
             >
               <div className="login-panel-header">
