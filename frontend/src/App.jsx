@@ -252,6 +252,7 @@ function App() {
           setTheme={setTheme}
           currentUser={currentUser}
           onOpenProfile={() => setActiveTab('settings')}
+          onOpenInventory={() => setActiveTab('inventory')}
         />
         <main className="content-area">
           <div key={activeTab} className="page-transition">

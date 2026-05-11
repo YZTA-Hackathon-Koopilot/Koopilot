@@ -1,18 +1,13 @@
-import { 
-  MessageSquare, 
-  ShoppingCart, 
-  Package, 
+import {
   Truck, 
   BarChart3, 
   RadioTower,
   LogOut,
   User,
   Calendar,
-  Leaf,
   Wheat,
   Trees,
   Sprout,
-  Settings
 } from 'lucide-react';
 import logoUrl from '../assets/logo.png';
 const Sidebar = ({ activeTab, setActiveTab, currentUser, onLogout }) => {

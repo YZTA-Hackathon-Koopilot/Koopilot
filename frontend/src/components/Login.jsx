@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { FaGithub, FaTelegramPlane } from "react-icons/fa";
 import {
-  Leaf,
   Lock,
   LogIn,
   Mail,

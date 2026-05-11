@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Bell, User, Search, AlertTriangle, Moon, Sun } from 'lucide-react';
 import { getInventoryAlerts } from '../services/api';
-const Header = ({ title, searchTerm, setSearchTerm, theme, setTheme, currentUser, onOpenProfile }) => {
+const Header = ({ title, searchTerm, setSearchTerm, theme, setTheme, currentUser, onOpenProfile, onOpenInventory }) => {
   const [alerts, setAlerts] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const notificationRef = useRef(null);
@@ -92,7 +92,7 @@ const Header = ({ title, searchTerm, setSearchTerm, theme, setTheme, currentUser
             </div>
             {alerts.length > 0 && (
               <div className="dropdown-footer">
-                <span onClick={() => setActiveTab('inventory')}>Tümünü Gör</span>
+                <span onClick={onOpenInventory}>Tümünü Gör</span>
               </div>
             )}
           </div>

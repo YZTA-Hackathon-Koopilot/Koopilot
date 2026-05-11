@@ -9,7 +9,6 @@ import {
   Zap,
   ShieldCheck,
   RotateCw,
-  Trophy,
   ShoppingBag,
   Tag,
   RefreshCw,
