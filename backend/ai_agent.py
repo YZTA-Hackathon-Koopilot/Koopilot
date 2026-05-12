@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from schemas import AIFinalResponse, AIParsedProduct
+from schemas import AIFinalResponse, AIParsedProduct, StaffAssistantDecision, StaffAssistantTextResponse
 import json
 import re
 
@@ -35,6 +35,139 @@ def get_client():
     if not api_key or api_key == "your_gemini_api_key_here":
         return None
     return genai.Client(api_key=api_key)
+
+
+def get_staff_model():
+    load_dotenv(override=True)
+    return os.getenv("GEMINI_STAFF_MODEL") or "gemini-3.1-flash-lite"
+
+
+def _json_default(value):
+    if hasattr(value, "value"):
+        return value.value
+    if hasattr(value, "isoformat"):
+        return value.isoformat()
+    return str(value)
+
+
+def _to_json(value) -> str:
+    return json.dumps(value, ensure_ascii=False, default=_json_default)
+
+
+def _require_client():
+    client = get_client()
+    if not client:
+        raise RuntimeError("Gemini API anahtarı tanımlı değil. Panel operasyon asistanı otomatik cevap üretmez; GEMINI_API_KEY gerekli.")
+    return client
+
+
+def decide_staff_action_with_ai(message: str, context: dict, history: list[dict] | None = None) -> StaffAssistantDecision:
+    client = _require_client()
+    prompt = f"""
+Sen Koopilot panelinin içindeki PERSONEL OPERASYON ASİSTANISIN.
+Sen müşteriyle değil, kooperatif/KOBİ çalışanı olan panel kullanıcısıyla konuşuyorsun.
+
+Görevin:
+- Personelle doğal, kısa ve profesyonel Türkçe konuş.
+- Personel isterse sohbet et, kendini tanıt, ne işe yaradığını açıkla.
+- Personel "ben kimim", "hesabım ne" gibi sorarsa sadece Bağlam.current_user alanındaki name/email/role bilgisini kullan; yoksa bilgiye erişemediğini söyle.
+- Personelin operasyon isteğini anla ve aşağıdaki action'lardan birini seç.
+- Sadece gerçekten istenen işlemi seç. Emin değilsen action="chat" veya "unknown" seçip netleştirici cevap yaz.
+- Müşteri destek botu gibi konuşma. "Ürünlerimizi inceleyebilirsiniz" gibi müşteriye dönük cevaplar verme.
+- Eski yerel netleştirme kalıplarını kullanma; her durumda personelle doğal konuş.
+- Bir müşteri mesajı analiz edilecekse personel genelde "müşteri mesajı:", "müşteri yazdı:", "şunu analiz et:" gibi belirtir. O zaman action="analyze_customer_message" seç ve customer_message alanını doldur.
+
+Seçilebilir action'lar:
+- chat: normal sohbet, açıklama, kendini tanıtma, kullanıcı/profil bilgisi, yetenek anlatımı
+- list_orders: sipariş listeleme
+- order_detail: tek sipariş detayı
+- approve_order: taslak sipariş onaylama ve stoktan düşme
+- reject_order: sipariş reddetme/iptal etme
+- delete_order: sipariş silme
+- list_products: stok/ürün listeleme
+- product_detail: tek ürün stok/fiyat detayı
+- update_product: ürün stok/fiyat güncelleme
+- create_product: yeni ürün oluşturma
+- list_shipments: kargo/takipteki siparişleri listeleme
+- update_shipping: sipariş kargo durumunu güncelleme
+- daily_summary: operasyon özeti
+- analyze_customer_message: yapıştırılan müşteri mesajını sipariş/niyet analizi akışına gönderme
+- unknown: isteğin ne olduğu anlaşılmadı
+
+Bağlam:
+{_to_json(context)}
+
+Son panel sohbet geçmişi:
+{_to_json(history or [])}
+
+Personelin son mesajı:
+{message}
+
+JSON üret. response alanı, personele doğal bir ilk cevap/niyet açıklaması olsun.
+Veritabanı işleminin yapıldığını iddia etme; backend işlemi uyguladıktan sonra nihai cevap ayrıca üretilecek.
+"""
+    response = client.models.generate_content(
+        model=get_staff_model(),
+        contents=prompt,
+        config={
+            "response_mime_type": "application/json",
+            "response_schema": StaffAssistantDecision,
+            "temperature": 0.15,
+        },
+    )
+    data = json.loads(response.text)
+    return StaffAssistantDecision(**data)
+
+
+def compose_staff_response_with_ai(
+    message: str,
+    context: dict,
+    decision: StaffAssistantDecision,
+    operation_result: dict,
+    history: list[dict] | None = None,
+) -> str:
+    client = _require_client()
+    prompt = f"""
+Sen Koopilot panelinin personel operasyon asistanısın.
+Panel kullanıcısı müşteridir değil, personeldir.
+
+Nihai cevabını şu kurallarla yaz:
+- Türkçe, doğal, net ve işe dönük ol.
+- Yapılan işlem varsa sonucunu açıkça söyle.
+- Liste/veri varsa okunabilir maddelerle özetle.
+- Eksik bilgi veya hata varsa personelin bir sonraki adımını söyle.
+- Müşteri destek botu gibi cevap verme.
+- Veride olmayan şeyi uydurma.
+
+Personel mesajı:
+{message}
+
+Gemini kararın:
+{decision.model_dump_json()}
+
+Backend operasyon sonucu:
+{_to_json(operation_result)}
+
+Güncel bağlam:
+{_to_json(context)}
+
+Son panel sohbet geçmişi:
+{_to_json(history or [])}
+"""
+    response = client.models.generate_content(
+        model=get_staff_model(),
+        contents=prompt,
+        config={
+            "response_mime_type": "application/json",
+            "response_schema": StaffAssistantTextResponse,
+            "temperature": 0.35,
+        },
+    )
+    try:
+        data = json.loads(response.text)
+        return StaffAssistantTextResponse(**data).response.strip()
+    except Exception:
+        return (response.text or "").strip()
 
 
 def _extract_quantity(message: str, keyword: str) -> float | None:

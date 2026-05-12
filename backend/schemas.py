@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Literal
 from datetime import datetime
 from models import OrderStatus
 class ProductBase(BaseModel):
@@ -58,6 +58,49 @@ class AIFinalResponse(BaseModel):
     city: Optional[str] = Field(None, description="Teslimat veya bilgi istenen şehir adı")
     missing_info: List[str] = Field(default_factory=list, description="Eğer intent 'new_order' ise, sipariş için eksik olan bilgilerin listesi (örneğin: 'telefon', 'açık adres', 'isim')")
     ai_reply_draft: str = Field(description="Müşteriye gönderilmek üzere hazırlanmış, nazik ve profesyonel taslak cevap.")
+
+
+class StaffProductPayload(BaseModel):
+    name: Optional[str] = Field(None, description="Ürün adı")
+    description: Optional[str] = Field(None, description="Ürün açıklaması")
+    category: Optional[str] = Field(None, description="Ürün kategorisi")
+    unit: Optional[str] = Field(None, description="Ürün birimi")
+    stock: Optional[float] = Field(None, description="Stok miktarı")
+    price: Optional[float] = Field(None, description="Ürün fiyatı")
+
+
+class StaffAssistantDecision(BaseModel):
+    action: Literal[
+        "chat",
+        "list_orders",
+        "order_detail",
+        "approve_order",
+        "reject_order",
+        "delete_order",
+        "list_products",
+        "product_detail",
+        "update_product",
+        "create_product",
+        "list_shipments",
+        "update_shipping",
+        "daily_summary",
+        "analyze_customer_message",
+        "unknown",
+    ] = Field(description="Backend'in uygulayacağı operasyon veya doğal sohbet aksiyonu")
+    response: str = Field(description="Gemini'nin personele doğal Türkçe cevabı veya işlem öncesi açıklaması")
+    order_id: Optional[int] = Field(None, description="Sipariş işlemleri için sipariş id")
+    order_status: Optional[str] = Field(None, description="Listeleme filtresi: draft, approved, shipped, rejected, active, all")
+    product_name: Optional[str] = Field(None, description="Ürün işlemleri için ürün adı")
+    product: Optional[StaffProductPayload] = Field(None, description="Yeni ürün veya ürün güncelleme alanları")
+    stock: Optional[float] = Field(None, description="Ürün stok güncelleme değeri")
+    price: Optional[float] = Field(None, description="Ürün fiyat güncelleme değeri")
+    shipping_status: Optional[str] = Field(None, description="Kargo durumu")
+    customer_message: Optional[str] = Field(None, description="Personelin analiz ettirmek istediği müşteri mesajı")
+    needs_confirmation: bool = Field(False, description="İşlem için ek onay ya da bilgi gerekiyorsa true")
+
+
+class StaffAssistantTextResponse(BaseModel):
+    response: str = Field(description="Personele gösterilecek nihai Türkçe cevap")
 
 
 class AuthUserResponse(BaseModel):
