@@ -252,8 +252,346 @@ def _staff_response(text: str, intent: str = "staff_assistant", warnings: list[s
     }
 
 
+def _format_product(product: models.Product):
+    return f"{product.name}: {product.stock:g} {product.unit} | {product.price:g} TL"
+
+
+def _format_order_line(order: models.Order):
+    return f"#{order.id} | {order.status.value} | {order.customer_name or 'İsim yok'} | {_format_order_items(order)}"
+
+
+def _extract_first_number(text: str) -> int | None:
+    match = re.search(r"(?:#|no|numara|siparis|sipariş)?\s*(\d+)", text)
+    return int(match.group(1)) if match else None
+
+
+def _extract_decimal_after_keywords(text: str, keywords: list[str]) -> float | None:
+    normalized = normalize_text(text)
+    for keyword in keywords:
+        key = normalize_text(keyword)
+        patterns = [
+            rf"{key}\w*\s*(?:degerini|degeri|sayisini|miktarini|miktari|fiyatini|fiyati)?\s*(\d+(?:[,.]\d+)?)",
+            rf"(\d+(?:[,.]\d+)?)\s*(?:tl|lira|adet|kavanoz|sise|şişe|kg|kilo|litre)?\s*{key}\w*",
+        ]
+        for pattern in patterns:
+            match = re.search(pattern, normalized)
+            if match:
+                return float(match.group(1).replace(",", "."))
+    return None
+
+
+def _extract_product_payload(message: str):
+    def grab(pattern: str):
+        match = re.search(pattern, message, flags=re.IGNORECASE)
+        return match.group(1).strip(" .,-") if match else None
+
+    name = grab(r"(?:ürün|urun)\s*(?:adı|adi|ismi|ismini)?\s*[:=]\s*([^,\n]+)")
+    category = grab(r"kategori\s*[:=]\s*([^,\n]+)")
+    unit = grab(r"birim\s*[:=]\s*([^,\n]+)") or "Adet"
+    description = grab(r"(?:açıklama|aciklama)\s*[:=]\s*([^,\n]+)") or ""
+    stock = _extract_decimal_after_keywords(message, ["stok"])
+    price = _extract_decimal_after_keywords(message, ["fiyat", "price"])
+
+    if not name:
+        match = re.search(r"(?:yeni\s+)?(?:ürün|urun)\s+ekle\s+(.+)", message, flags=re.IGNORECASE)
+        if match:
+            tail = match.group(1).strip()
+            name = tail.split(",")[0].strip()
+
+    return {
+        "name": name,
+        "category": category or "Genel",
+        "unit": unit,
+        "description": description,
+        "stock": stock,
+        "price": price,
+    }
+
+
+def _find_staff_product(message: str, db: Session):
+    products = db.query(models.Product).all()
+    if not products:
+        return None
+
+    normalized = normalize_text(message)
+    for product in products:
+        if normalize_text(product.name) in normalized:
+            return product
+
+    cleaned_query = normalized
+    for word in [
+        "stok", "stogu", "stokunu", "fiyat", "fiyati", "fiyatini", "guncelle",
+        "goster", "listele", "yap", "olarak", "ayarla", "urun", "urunu",
+    ]:
+        cleaned_query = re.sub(rf"\b{word}\b", " ", cleaned_query)
+    cleaned_query = re.sub(r"\d+(?:[,.]\d+)?", " ", cleaned_query).strip()
+
+    return find_best_product(cleaned_query or message, products)
+
+
+def _get_order_or_response(order_id: int | None, db: Session):
+    if not order_id:
+        return None, _staff_response(
+            "Hangi sipariş üzerinde işlem yapacağımı anlayamadım. Örneğin: `sipariş #3 onayla`.",
+            intent="staff_needs_order_id",
+        )
+
+    order = db.query(models.Order).filter(models.Order.id == order_id).first()
+    if not order:
+        return None, _staff_response(
+            f"Sipariş #{order_id} bulunamadı.",
+            intent="staff_order_not_found",
+            warnings=[f"Sipariş #{order_id} bulunamadı."],
+        )
+    return order, None
+
+
+def _approve_staff_order(order_id: int, db: Session):
+    order, error_response = _get_order_or_response(order_id, db)
+    if error_response:
+        return error_response
+
+    if order.status != models.OrderStatus.DRAFT:
+        return _staff_response(
+            f"Sipariş #{order.id} onaylanamadı. Sadece Taslak durumundaki siparişler onaylanabilir. Mevcut durum: {order.status.value}.",
+            intent="staff_order_action",
+            warnings=["Sipariş uygun durumda değil."],
+        )
+    if order.missing_info:
+        return _staff_response(
+            f"Sipariş #{order.id} onaylanamadı. Eksik bilgiler: {order.missing_info}.",
+            intent="staff_order_action",
+            warnings=[f"Eksik bilgiler: {order.missing_info}"],
+        )
+    if not order.items:
+        return _staff_response(
+            f"Sipariş #{order.id} içinde ürün kalemi yok.",
+            intent="staff_order_action",
+            warnings=["Sipariş kalemi bulunmuyor."],
+        )
+
+    try:
+        for item in order.items:
+            if item.quantity is None or item.quantity <= 0:
+                raise ValueError("Sipariş kalemlerinde miktarı eksik veya geçersiz ürün var.")
+            product = db.query(models.Product).filter(models.Product.id == item.product_id).with_for_update().first()
+            if not product:
+                raise ValueError(f"Sipariş kalemi için ürün bulunamadı: {item.product_id}")
+            if product.stock < item.quantity:
+                raise ValueError(f"'{product.name}' için yetersiz stok. Mevcut: {product.stock:g} {product.unit}, istenen: {item.quantity:g}.")
+            product.stock -= item.quantity
+
+        order.status = models.OrderStatus.APPROVED
+        db.commit()
+        db.refresh(order)
+        return _staff_response(
+            f"Sipariş #{order.id} onaylandı ve stoktan düşüldü.\n{_format_order_line(order)}",
+            intent="staff_order_action",
+        )
+    except ValueError as exc:
+        db.rollback()
+        return _staff_response(str(exc), intent="staff_order_action", warnings=[str(exc)])
+
+
+def _reject_staff_order(order_id: int, db: Session):
+    order, error_response = _get_order_or_response(order_id, db)
+    if error_response:
+        return error_response
+
+    if order.status == models.OrderStatus.APPROVED:
+        for item in order.items:
+            product = db.query(models.Product).filter(models.Product.id == item.product_id).first()
+            if product and item.quantity:
+                product.stock += item.quantity
+
+    order.status = models.OrderStatus.REJECTED
+    db.commit()
+    db.refresh(order)
+    return _staff_response(
+        f"Sipariş #{order.id} reddedildi. Onaylı siparişten dönüldüyse stok iade edildi.",
+        intent="staff_order_action",
+    )
+
+
+def _delete_staff_order(order_id: int, db: Session):
+    order, error_response = _get_order_or_response(order_id, db)
+    if error_response:
+        return error_response
+
+    if order.status == models.OrderStatus.APPROVED:
+        for item in order.items:
+            product = db.query(models.Product).filter(models.Product.id == item.product_id).first()
+            if product and item.quantity:
+                product.stock += item.quantity
+
+    db.delete(order)
+    db.commit()
+    return _staff_response(
+        f"Sipariş #{order_id} silindi. Onaylı siparişten silindiyse stok iade edildi.",
+        intent="staff_order_action",
+    )
+
+
+def _staff_order_detail(order_id: int, db: Session):
+    order, error_response = _get_order_or_response(order_id, db)
+    if error_response:
+        return error_response
+
+    return _staff_response(
+        "Sipariş detayı:\n"
+        f"- Sipariş: #{order.id}\n"
+        f"- Durum: {order.status.value}\n"
+        f"- Müşteri: {order.customer_name or 'İsim yok'}\n"
+        f"- Telefon: {order.phone or 'Yok'}\n"
+        f"- Adres: {(order.city or 'Şehir yok')}, {order.address or 'Adres yok'}\n"
+        f"- Eksik bilgi: {order.missing_info or 'Yok'}\n"
+        f"- Ürünler: {_format_order_items(order)}\n"
+        f"- Kargo: {order.shipping_status or 'Hazırlanıyor'}",
+        intent="staff_order_detail",
+    )
+
+
+def _update_staff_shipping(order_id: int, status: str, db: Session):
+    order, error_response = _get_order_or_response(order_id, db)
+    if error_response:
+        return error_response
+
+    order.shipping_status = status
+    order.shipping_updated_at = datetime.utcnow()
+    if status == "Kargoya Verildi":
+        order.status = models.OrderStatus.SHIPPED
+    db.commit()
+    db.refresh(order)
+    return _staff_response(
+        f"Sipariş #{order.id} kargo durumu `{status}` olarak güncellendi.",
+        intent="staff_shipping_action",
+    )
+
+
+def _update_staff_product(message: str, db: Session):
+    product = _find_staff_product(message, db)
+    if not product:
+        return _staff_response(
+            "Hangi ürünü güncelleyeceğimi anlayamadım. Örneğin: `zeytinyağı stokunu 12 yap` veya `nar ekşisi fiyatını 140 yap`.",
+            intent="staff_product_not_found",
+            warnings=["Ürün bulunamadı."],
+        )
+
+    stock_value = _extract_decimal_after_keywords(message, ["stok"])
+    price_value = _extract_decimal_after_keywords(message, ["fiyat", "price"])
+    updates = []
+
+    if stock_value is not None:
+        product.stock = stock_value
+        updates.append(f"stok {stock_value:g} {product.unit}")
+    if price_value is not None:
+        product.price = price_value
+        updates.append(f"fiyat {price_value:g} TL")
+
+    if not updates:
+        return _staff_response(
+            f"{product.name} bulundu ama neyi güncelleyeceğimi anlayamadım. Stok veya fiyat değeri belirtin.",
+            intent="staff_product_action",
+        )
+
+    db.commit()
+    db.refresh(product)
+    return _staff_response(
+        f"{product.name} güncellendi: {', '.join(updates)}.\nGüncel durum: {_format_product(product)}",
+        intent="staff_product_action",
+    )
+
+
+def _create_staff_product(message: str, db: Session):
+    payload = _extract_product_payload(message)
+    missing = []
+    if not payload["name"]:
+        missing.append("ürün adı")
+    if payload["stock"] is None:
+        missing.append("stok")
+    if payload["price"] is None:
+        missing.append("fiyat")
+
+    if missing:
+        return _staff_response(
+            "Ürün eklemek için eksik bilgi var: "
+            + ", ".join(missing)
+            + ". Örnek: `ürün ekle ürün adı: Lavanta Sabunu, kategori: Kozmetik, stok: 20, fiyat: 75, birim: adet`",
+            intent="staff_product_action",
+            warnings=[f"Eksik: {', '.join(missing)}"],
+        )
+
+    existing = db.query(models.Product).filter(models.Product.name == payload["name"]).first()
+    if existing:
+        return _staff_response(
+            f"{payload['name']} zaten stok listesinde var. Güncellemek için `stokunu ... yap` veya `fiyatını ... yap` diyebilirsiniz.",
+            intent="staff_product_action",
+            warnings=["Aynı isimde ürün var."],
+        )
+
+    product = models.Product(
+        name=payload["name"],
+        category=payload["category"],
+        unit=payload["unit"],
+        description=payload["description"],
+        stock=payload["stock"],
+        price=payload["price"],
+    )
+    db.add(product)
+    db.commit()
+    db.refresh(product)
+    return _staff_response(
+        f"Yeni ürün eklendi: {_format_product(product)}",
+        intent="staff_product_action",
+    )
+
+
+def _staff_product_detail(message: str, db: Session):
+    product = _find_staff_product(message, db)
+    if not product:
+        return _staff_response(
+            "Hangi ürünü sorguladığınızı anlayamadım. Örneğin: `nar ekşisi stok ne` veya `zeytinyağı kaç para`.",
+            intent="staff_product_not_found",
+            warnings=["Ürün bulunamadı."],
+        )
+
+    return _staff_response(
+        "Ürün durumu:\n"
+        f"- {_format_product(product)}\n"
+        f"- Kategori: {product.category}\n"
+        f"- Açıklama: {product.description or 'Yok'}",
+        intent="staff_product_detail",
+    )
+
+
+def _looks_like_customer_message(normalized: str):
+    customer_markers = [
+        "musteri mesaji", "musteri yazdi", "musteriden gelen",
+        "almak istiyorum", "siparis vermek", "sipariş vermek", "istiyorum",
+        "kargom", "iade", "bozuk", "kirik", "kırık", "gec geldi", "geç geldi",
+        "telefonum", "adresim", "ben ayse", "ben ahmet", "merhaba ben",
+    ]
+    has_phone = bool(re.search(r"(?:\+?90\s*)?0?5\d{2}\s*\d{3}\s*\d{2}\s*\d{2}", normalized))
+    return has_phone or any(marker in normalized for marker in customer_markers)
+
+
+def _strip_customer_message_prefix(message: str):
+    match = re.search(
+        r"(?:müşteri|musteri)\s*(?:mesajı|mesaji|yazdı|yazdi|dedi)?\s*[:=-]\s*(.+)",
+        message,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    return match.group(1).strip() if match else message
+
+
 def process_staff_message(message: str, session_id: str | None, db: Session):
     normalized = normalize_text(message)
+
+    if normalized.strip() in {"selam", "merhaba", "slm", "mrb", "hey", "hello"}:
+        return _staff_response(
+            "Merhaba, buradayım. Bana doğrudan operasyon komutu verebilirsiniz: `aktif siparişleri göster`, `kritik stokları göster`, `sipariş #3 onayla` gibi.",
+            intent="staff_greeting",
+        )
 
     if any(word in normalized for word in ["yardim", "komut", "ne yapabilirsin", "neler yapabilirsin"]):
         return _staff_response(
@@ -264,9 +602,57 @@ def process_staff_message(message: str, session_id: str | None, db: Session):
             "- Kritik stokları göster\n"
             "- Kargodaki siparişler neler?\n"
             "- Bugünkü operasyon özeti\n\n"
+            "İşlem de yapabilirim:\n"
+            "- Sipariş #3 onayla\n"
+            "- Sipariş #4 reddet\n"
+            "- Sipariş #5 sil\n"
+            "- Sipariş #2 kargoya verildi yap\n"
+            "- Zeytinyağı stokunu 12 yap\n"
+            "- Nar ekşisi fiyatını 140 yap\n"
+            "- Ürün ekle ürün adı: Lavanta Sabunu, kategori: Kozmetik, stok: 20, fiyat: 75, birim: adet\n\n"
             "Ayrıca bir müşteri mesajını buraya yapıştırırsanız onu analiz edip sipariş taslağı, eksik bilgi listesi ve müşteriye cevap önerisi oluştururum.",
             intent="staff_help",
         )
+
+    if "siparis" in normalized or "sipariş" in message.lower():
+        order_id = _extract_first_number(normalized)
+        if any(word in normalized for word in ["onayla", "onay", "approve"]):
+            return _approve_staff_order(order_id, db)
+        if any(word in normalized for word in ["reddet", "iptal", "reject"]):
+            return _reject_staff_order(order_id, db)
+        if any(word in normalized for word in ["sil", "kaldir", "kaldır", "delete"]):
+            return _delete_staff_order(order_id, db)
+        if any(word in normalized for word in ["teslim", "yolda", "verildi", "hazirlaniyor"]):
+            if "teslim" in normalized:
+                return _update_staff_shipping(order_id, "Teslim Edildi", db)
+            if "yolda" in normalized:
+                return _update_staff_shipping(order_id, "Yolda", db)
+            if "verildi" in normalized:
+                return _update_staff_shipping(order_id, "Kargoya Verildi", db)
+            if "hazirlaniyor" in normalized:
+                return _update_staff_shipping(order_id, "Hazırlanıyor", db)
+        if order_id and any(word in normalized for word in ["detay", "durum", "ne", "goster", "göster", "bilgi"]):
+            return _staff_order_detail(order_id, db)
+
+    if "kargo" in normalized and any(word in normalized for word in ["yap", "guncelle", "verildi", "yolda", "teslim", "hazirlaniyor"]):
+        order_id = _extract_first_number(normalized)
+        if "teslim" in normalized:
+            return _update_staff_shipping(order_id, "Teslim Edildi", db)
+        if "yolda" in normalized:
+            return _update_staff_shipping(order_id, "Yolda", db)
+        if "verildi" in normalized:
+            return _update_staff_shipping(order_id, "Kargoya Verildi", db)
+        if "hazirlaniyor" in normalized:
+            return _update_staff_shipping(order_id, "Hazırlanıyor", db)
+
+    if any(word in normalized for word in ["urun ekle", "ürün ekle", "yeni urun", "yeni ürün"]):
+        return _create_staff_product(message, db)
+
+    if any(word in normalized for word in ["stokunu", "stogu", "stok", "fiyatini", "fiyati", "fiyat"]) and any(word in normalized for word in ["yap", "ayarla", "guncelle", "degistir", "değiştir"]):
+        return _update_staff_product(message, db)
+
+    if any(word in normalized for word in ["stok", "fiyat", "fiyati", "fiyatini", "para", "kac", "kaç"]) and _find_staff_product(message, db):
+        return _staff_product_detail(message, db)
 
     if "stok" in normalized and any(word in normalized for word in ["kritik", "dusuk", "az", "biten", "tukenen", "uyari"]):
         low_stock_products = db.query(models.Product).filter(models.Product.stock < 10).order_by(models.Product.stock.asc()).all()
@@ -370,7 +756,15 @@ def process_staff_message(message: str, session_id: str | None, db: Session):
             intent="staff_daily_summary",
         )
 
-    customer_flow = process_message(message, session_id, db)
+    if not _looks_like_customer_message(normalized):
+        return _staff_response(
+            "Bunu müşteri mesajı olarak işlemeyeceğim; panelde personelle konuşuyorum. Ne yapmamı istediğinizi operasyon komutu gibi yazın.\n\n"
+            "Örnekler: `aktif siparişleri göster`, `kritik stokları göster`, `sipariş #3 onayla`, `zeytinyağı stokunu 12 yap`.",
+            intent="staff_clarification",
+        )
+
+    customer_message = _strip_customer_message_prefix(message)
+    customer_flow = process_message(customer_message, session_id, db)
     draft = customer_flow["ai_analysis"].get("ai_reply_draft") or "Cevap taslağı üretilemedi."
     customer_flow["ai_analysis"]["ai_reply_draft"] = (
         "Müşteri mesajını analiz ettim.\n\n"
