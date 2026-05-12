@@ -1,7 +1,7 @@
 import {
   Truck, 
   BarChart3, 
-  RadioTower,
+  Settings,
   LogOut,
   User,
   Calendar,
@@ -16,9 +16,9 @@ const Sidebar = ({ activeTab, setActiveTab, currentUser, onLogout }) => {
     { id: 'orders', label: 'Siparişler', icon: <Wheat size={20} /> },
     { id: 'inventory', label: 'Stok Yönetimi', icon: <Trees size={20} /> },
     { id: 'shipping', label: 'Kargo Takip', icon: <Truck size={20} /> },
-    { id: 'channels', label: 'Kanallar', icon: <RadioTower size={20} /> },
     { id: 'summary', label: 'Günlük Özet', icon: <BarChart3 size={20} /> },
     { id: 'calendar', label: 'Takvim', icon: <Calendar size={20} /> },
+    { id: 'settings', label: 'Ayarlar', icon: <Settings size={20} /> },
   ];
   return (
     <div className="sidebar">
@@ -47,7 +47,7 @@ const Sidebar = ({ activeTab, setActiveTab, currentUser, onLogout }) => {
           type="button"
           onClick={() => setActiveTab('settings')}
           className="sidebar-footer-user"
-          title="Profil sayfasını aç"
+          title="Profil ve ayarları aç"
         >
           <span className="user-avatar">
             <User size={17} />

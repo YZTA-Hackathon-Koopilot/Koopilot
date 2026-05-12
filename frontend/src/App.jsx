@@ -6,7 +6,6 @@ import OrderPanel from './components/OrderPanel';
 import InventoryPanel from './components/InventoryPanel';
 import ShippingPanel from './components/ShippingPanel';
 import DailySummary from './components/DailySummary';
-import ChannelsPanel from './components/ChannelsPanel';
 import CalendarPanel from './components/CalendarPanel';
 import Login from './components/Login';
 import SettingsPanel from './components/SettingsPanel';
@@ -196,11 +195,28 @@ function App() {
       case 'shipping':
         return <ShippingPanel />;
       case 'channels':
-        return <ChannelsPanel />;
+        return (
+          <SettingsPanel
+            currentUser={currentUser}
+            onUserUpdate={setCurrentUser}
+            onLogout={handleLogout}
+            theme={theme}
+            setTheme={setTheme}
+            initialSection="developer"
+          />
+        );
       case 'calendar':
         return <CalendarPanel />;
       case 'settings':
-        return <SettingsPanel currentUser={currentUser} onUserUpdate={setCurrentUser} onLogout={handleLogout} />;
+        return (
+          <SettingsPanel
+            currentUser={currentUser}
+            onUserUpdate={setCurrentUser}
+            onLogout={handleLogout}
+            theme={theme}
+            setTheme={setTheme}
+          />
+        );
       default:
         return (
           <MessagePanel
@@ -223,10 +239,10 @@ function App() {
       orders: 'Sipariş Yönetimi',
       inventory: 'Stok ve Envanter',
       shipping: 'Kargo Takibi',
-      channels: 'Kanal Bağlantıları',
+      channels: 'Ayarlar',
       summary: 'Günlük Operasyon Özeti',
       calendar: 'Takvim & Görev Takibi',
-      settings: 'Hesabım & Güvenlik'
+      settings: 'Ayarlar'
     };
     return titles[activeTab] || 'Dashboard';
   };

@@ -136,6 +136,11 @@ class AuthTokenResponse(BaseModel):
     user: AuthUserResponse
 
 
+class AuthProfileUpdateRequest(BaseModel):
+    name: str = Field(..., min_length=2, max_length=80)
+    email: str = Field(..., min_length=5, max_length=120)
+
+
 class PasswordChangeRequest(BaseModel):
     current_password: str = Field(..., min_length=6, max_length=128)
     new_password: str = Field(..., min_length=6, max_length=128)

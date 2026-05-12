@@ -7,6 +7,7 @@ import models
 from database import get_db
 from schemas import (
     AuthLoginRequest,
+    AuthProfileUpdateRequest,
     AuthRegisterRequest,
     AuthTokenResponse,
     AuthUserResponse,
@@ -120,6 +121,35 @@ def demo_login(db: Session = Depends(get_db)):
 
 @router.get("/me", response_model=AuthUserResponse)
 def me(current_user: models.User = Depends(get_current_user)):
+    return current_user
+
+
+@router.put("/profile", response_model=AuthUserResponse)
+def update_profile(
+    payload: AuthProfileUpdateRequest,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    name = payload.name.strip()
+    if len(name) < 2:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Ad soyad en az 2 karakter olmalıdır.",
+        )
+
+    email = normalize_email(payload.email)
+    existing_user = db.query(models.User).filter(models.User.email == email).first()
+    if existing_user and existing_user.id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Bu e-posta adresi başka bir hesapta kullanılıyor.",
+        )
+
+    current_user.name = name
+    current_user.email = email
+    db.add(current_user)
+    db.commit()
+    db.refresh(current_user)
     return current_user
 
 
