@@ -219,7 +219,7 @@ function App() {
   };
   const getTitle = () => {
     const titles = {
-      messages: 'Mesaj Analizi & AI Ajan',
+      messages: 'Operasyon Asistanı',
       orders: 'Sipariş Yönetimi',
       inventory: 'Stok ve Envanter',
       shipping: 'Kargo Takibi',

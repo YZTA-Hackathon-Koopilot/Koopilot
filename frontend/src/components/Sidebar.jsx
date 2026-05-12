@@ -7,12 +7,12 @@ import {
   Calendar,
   Wheat,
   Trees,
-  Sprout,
+  Bot,
 } from 'lucide-react';
 import logoUrl from '../assets/logo.png';
 const Sidebar = ({ activeTab, setActiveTab, currentUser, onLogout }) => {
   const menuItems = [
-    { id: 'messages', label: 'Mesajlar', icon: <Sprout size={20} /> },
+    { id: 'messages', label: 'Operasyon Asistanı', icon: <Bot size={20} /> },
     { id: 'orders', label: 'Siparişler', icon: <Wheat size={20} /> },
     { id: 'inventory', label: 'Stok Yönetimi', icon: <Trees size={20} /> },
     { id: 'shipping', label: 'Kargo Takip', icon: <Truck size={20} /> },
