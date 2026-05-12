@@ -70,6 +70,114 @@ body {
     background-color: var(--bg-cream);
     color: var(--text-dark);
 }
+.markdown-message {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-wrap: anywhere;
+}
+.markdown-message p {
+    margin: 0;
+}
+.markdown-message h3,
+.markdown-message h4 {
+    margin: 2px 0 0;
+    color: var(--text-dark);
+    line-height: 1.25;
+}
+.markdown-message h3 {
+    font-size: 16px;
+}
+.markdown-message h4 {
+    font-size: 15px;
+}
+.markdown-message strong {
+    font-weight: 800;
+}
+.markdown-message em {
+    color: var(--text-light);
+}
+.markdown-message a {
+    color: var(--primary-mid);
+    font-weight: 700;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(82, 183, 136, 0.45);
+}
+.markdown-message a:hover {
+    border-bottom-color: var(--primary-mid);
+}
+.markdown-message ul,
+.markdown-message ol {
+    margin: 0;
+    padding-left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.markdown-message li::marker {
+    color: var(--primary-mid);
+    font-weight: 800;
+}
+.markdown-message code {
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: var(--surface-elevated);
+    border: 1px solid var(--border-color);
+    color: var(--primary-dark);
+    font-size: 0.92em;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+.markdown-message pre {
+    margin: 2px 0;
+    padding: 12px;
+    border-radius: 10px;
+    overflow-x: auto;
+    background: var(--surface-elevated);
+    border: 1px solid var(--border-color);
+}
+.markdown-message pre code {
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--text-dark);
+    white-space: pre;
+}
+.markdown-message blockquote {
+    margin: 0;
+    padding: 8px 12px;
+    border-left: 3px solid var(--primary-light);
+    border-radius: 0 8px 8px 0;
+    background: var(--surface-elevated);
+    color: var(--text-light);
+}
+.markdown-table-wrap {
+    max-width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--surface-elevated);
+}
+.markdown-message table {
+    width: 100%;
+    min-width: 420px;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+.markdown-message th,
+.markdown-message td {
+    padding: 9px 11px;
+    border-bottom: 1px solid var(--border-color);
+    text-align: left;
+    vertical-align: top;
+}
+.markdown-message th {
+    color: var(--text-light);
+    font-weight: 800;
+    background: var(--surface-muted);
+}
+.markdown-message tr:last-child td {
+    border-bottom: none;
+}
 .auth-loading {
     min-height: 100vh;
     display: flex;

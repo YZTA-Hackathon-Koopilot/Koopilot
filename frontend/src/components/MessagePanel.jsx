@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, AlertCircle, ShoppingBag, History, Plus, Trash2, X } from 'lucide-react';
 import { askStaffAssistant } from '../services/api';
 import { getApiErrorMessage, toDisplayText } from '../utils/display';
+import MarkdownMessage from './MarkdownMessage';
 const MessagePanel = ({ messages, setMessages, isLoading, setIsLoading, sessionId, chatHistory, onNewChat, onLoadChat, onDeleteChat }) => {
   const [input, setInput] = useState('');
   const [showHistory, setShowHistory] = useState(false);
@@ -163,9 +164,13 @@ const MessagePanel = ({ messages, setMessages, isLoading, setIsLoading, sessionI
               color: msg.type === 'user' ? 'var(--on-primary)' : 'var(--text-dark)',
               fontSize: '15px',
               lineHeight: '1.6',
-              whiteSpace: 'pre-wrap'
+              whiteSpace: msg.type === 'user' ? 'pre-wrap' : 'normal'
             }}>
-              {toDisplayText(msg.text, '')}
+              {msg.type === 'ai' ? (
+                <MarkdownMessage text={toDisplayText(msg.text, '')} />
+              ) : (
+                toDisplayText(msg.text, '')
+              )}
               {}
               {Array.isArray(msg.warnings) && msg.warnings.length > 0 && (
                 <div style={{
