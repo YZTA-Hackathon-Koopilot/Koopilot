@@ -339,7 +339,7 @@ def generate_campaign_suggestion(product_name: str, price: float, stock: float) 
         return f"Kampanya Önerisi ({product_name}): %15 indirimle stokları eritebiliriz! '{product_name}' sağlıklı ve doğal yapısıyla sofraların vazgeçilmezi."
 
     response = client.models.generate_content(
-        model='gemini-2.0-flash',
+        model='gemini-3.1-flash-lite',
         contents=prompt
     )
     return response.text.strip()
