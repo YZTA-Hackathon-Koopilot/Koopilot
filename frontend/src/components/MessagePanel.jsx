@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, AlertCircle, ShoppingBag, History, Plus, Trash2, X } from 'lucide-react';
-import { analyzeMessage } from '../services/api';
+import { askStaffAssistant } from '../services/api';
 import { getApiErrorMessage, toDisplayText } from '../utils/display';
 const MessagePanel = ({ messages, setMessages, isLoading, setIsLoading, sessionId, chatHistory, onNewChat, onLoadChat, onDeleteChat }) => {
   const [input, setInput] = useState('');
@@ -18,7 +18,7 @@ const MessagePanel = ({ messages, setMessages, isLoading, setIsLoading, sessionI
     setInput('');
     setIsLoading(true);
     try {
-      const data = await analyzeMessage(input, sessionId);
+      const data = await askStaffAssistant(input, sessionId);
       const aiMsg = { 
         id: Date.now() + 1, 
         type: 'ai', 
@@ -72,7 +72,7 @@ const MessagePanel = ({ messages, setMessages, isLoading, setIsLoading, sessionI
           </div>
           <div>
             <h3 style={{ margin: 0, fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              Koopilot Ajan
+              Operasyon Asistanı
             </h3>
             <div style={{ fontSize: '12px', color: 'var(--text-light)' }}>
               Oturum: {sessionId.replace('session_', '').slice(0, 8)}
@@ -152,7 +152,7 @@ const MessagePanel = ({ messages, setMessages, isLoading, setIsLoading, sessionI
                 {msg.type === 'user' ? <User size={16} /> : <Bot size={18} />}
               </div>
               <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-light)' }}>
-                {msg.type === 'user' ? 'Müşteri' : 'Koopilot'}
+                {msg.type === 'user' ? 'Personel' : 'Koopilot'}
               </span>
             </div>
             <div style={{
@@ -235,7 +235,7 @@ const MessagePanel = ({ messages, setMessages, isLoading, setIsLoading, sessionI
           type="text" 
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Müşteri mesajını buraya yazın..."
+          placeholder="Operasyon sorusu yazın veya müşteri mesajı yapıştırın..."
           style={{
             flex: 1,
             height: '48px',

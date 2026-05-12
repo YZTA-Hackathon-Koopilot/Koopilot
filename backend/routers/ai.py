@@ -224,6 +224,161 @@ def process_message(message: str, session_id: str | None, db: Session):
     return response_data
 
 
+def _format_order_items(order: models.Order):
+    if not order.items:
+        return "ürün kalemi yok"
+    lines = []
+    for item in order.items:
+        quantity = f"{item.quantity:g}" if item.quantity is not None else "miktar yok"
+        lines.append(f"{quantity} {item.unit or 'adet'} {item.product_name or f'Ürün #{item.product_id}'}")
+    return ", ".join(lines)
+
+
+def _staff_response(text: str, intent: str = "staff_assistant", warnings: list[str] | None = None):
+    return {
+        "ai_analysis": {
+            "intent": intent,
+            "customer_name": None,
+            "phone": None,
+            "address": None,
+            "products": [],
+            "city": None,
+            "missing_info": [],
+            "ai_reply_draft": text,
+        },
+        "created_order": None,
+        "shipping_info": None,
+        "warnings": warnings or [],
+    }
+
+
+def process_staff_message(message: str, session_id: str | None, db: Session):
+    normalized = normalize_text(message)
+
+    if any(word in normalized for word in ["yardim", "komut", "ne yapabilirsin", "neler yapabilirsin"]):
+        return _staff_response(
+            "Ben panel içi Koopilot operasyon asistanıyım.\n\n"
+            "Bana şunları sorabilirsiniz:\n"
+            "- Aktif siparişleri göster\n"
+            "- Taslak siparişleri listele\n"
+            "- Kritik stokları göster\n"
+            "- Kargodaki siparişler neler?\n"
+            "- Bugünkü operasyon özeti\n\n"
+            "Ayrıca bir müşteri mesajını buraya yapıştırırsanız onu analiz edip sipariş taslağı, eksik bilgi listesi ve müşteriye cevap önerisi oluştururum.",
+            intent="staff_help",
+        )
+
+    if "stok" in normalized and any(word in normalized for word in ["kritik", "dusuk", "az", "biten", "tukenen", "uyari"]):
+        low_stock_products = db.query(models.Product).filter(models.Product.stock < 10).order_by(models.Product.stock.asc()).all()
+        if not low_stock_products:
+            return _staff_response(
+                "Kritik stok görünmüyor. 10 adedin altında ürün bulunmuyor.",
+                intent="staff_stock_summary",
+            )
+
+        lines = [
+            f"- {product.name}: {product.stock:g} {product.unit} kaldı"
+            for product in low_stock_products[:10]
+        ]
+        return _staff_response(
+            f"Kritik stokta {len(low_stock_products)} ürün var:\n" + "\n".join(lines),
+            intent="staff_stock_summary",
+        )
+
+    if "stok" in normalized and any(word in normalized for word in ["goster", "liste", "durum", "ne"]):
+        products = db.query(models.Product).order_by(models.Product.stock.asc()).limit(12).all()
+        lines = [
+            f"- {product.name}: {product.stock:g} {product.unit} | {product.price:g} TL"
+            for product in products
+        ]
+        return _staff_response(
+            "Stok durumu:\n" + "\n".join(lines),
+            intent="staff_stock_summary",
+        )
+
+    if "siparis" in normalized and any(word in normalized for word in ["aktif", "goster", "liste", "neler", "var"]):
+        active_orders = db.query(models.Order).filter(
+            models.Order.status.in_([
+                models.OrderStatus.DRAFT,
+                models.OrderStatus.APPROVED,
+                models.OrderStatus.SHIPPED,
+            ])
+        ).order_by(models.Order.order_date.desc()).limit(10).all()
+
+        if not active_orders:
+            return _staff_response(
+                "Aktif sipariş bulunmuyor. Yeni Telegram veya panel siparişi geldiğinde burada özetleyebilirim.",
+                intent="staff_orders_summary",
+            )
+
+        lines = [
+            f"- #{order.id} | {order.status.value} | {order.customer_name or 'İsim yok'} | {_format_order_items(order)}"
+            for order in active_orders
+        ]
+        return _staff_response(
+            f"Aktif siparişler ({len(active_orders)} kayıt):\n" + "\n".join(lines),
+            intent="staff_orders_summary",
+        )
+
+    if "taslak" in normalized and "siparis" in normalized:
+        draft_orders = db.query(models.Order).filter(
+            models.Order.status == models.OrderStatus.DRAFT
+        ).order_by(models.Order.order_date.desc()).limit(10).all()
+
+        if not draft_orders:
+            return _staff_response("Taslak sipariş bulunmuyor.", intent="staff_orders_summary")
+
+        lines = [
+            f"- #{order.id} | {order.customer_name or 'İsim yok'} | Eksik: {order.missing_info or 'yok'} | {_format_order_items(order)}"
+            for order in draft_orders
+        ]
+        return _staff_response(
+            f"Taslak siparişler ({len(draft_orders)} kayıt):\n" + "\n".join(lines),
+            intent="staff_orders_summary",
+        )
+
+    if "kargo" in normalized and any(word in normalized for word in ["goster", "liste", "aktif", "nerede", "durum"]):
+        shipments = db.query(models.Order).filter(
+            models.Order.status.in_([models.OrderStatus.APPROVED, models.OrderStatus.SHIPPED])
+        ).order_by(models.Order.order_date.desc()).limit(10).all()
+
+        if not shipments:
+            return _staff_response("Aktif kargo/takip kaydı bulunmuyor.", intent="staff_shipping_summary")
+
+        lines = [
+            f"- #{order.id} | {order.customer_name or 'İsim yok'} | {order.shipping_status or 'Hazırlanıyor'}"
+            for order in shipments
+        ]
+        return _staff_response(
+            f"Kargo takibindeki siparişler:\n" + "\n".join(lines),
+            intent="staff_shipping_summary",
+        )
+
+    if any(word in normalized for word in ["ozet", "bugun", "durum raporu", "operasyon"]):
+        today = date.today()
+        total_messages = db.query(models.MessageLog).filter(func.date(models.MessageLog.created_at) == today).count()
+        draft_count = db.query(models.Order).filter(models.Order.status == models.OrderStatus.DRAFT).count()
+        approved_count = db.query(models.Order).filter(models.Order.status == models.OrderStatus.APPROVED).count()
+        low_stock_count = db.query(models.Product).filter(models.Product.stock < 10).count()
+
+        return _staff_response(
+            "Bugünkü operasyon özeti:\n"
+            f"- Analiz edilen mesaj: {total_messages}\n"
+            f"- Taslak sipariş: {draft_count}\n"
+            f"- Onaylı sipariş: {approved_count}\n"
+            f"- Kritik stok ürünü: {low_stock_count}",
+            intent="staff_daily_summary",
+        )
+
+    customer_flow = process_message(message, session_id, db)
+    draft = customer_flow["ai_analysis"].get("ai_reply_draft") or "Cevap taslağı üretilemedi."
+    customer_flow["ai_analysis"]["ai_reply_draft"] = (
+        "Müşteri mesajını analiz ettim.\n\n"
+        f"Müşteriye cevap taslağı:\n{draft}"
+    )
+    return customer_flow
+
+
 @router.post("/analyze-message", summary="Müşteri mesajını analiz et ve niyetine göre aksiyon al")
 def analyze_message(request: schemas.MessageRequest, db: Session = Depends(get_db)):
     client_id = request.session_id or "anonymous"
@@ -234,6 +389,19 @@ def analyze_message(request: schemas.MessageRequest, db: Session = Depends(get_d
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Sistem Hatası: {str(e)}")
+
+
+@router.post("/staff-assistant", summary="Personel operasyon asistanı")
+def staff_assistant(request: schemas.MessageRequest, db: Session = Depends(get_db)):
+    client_id = f"staff_{request.session_id or 'anonymous'}"
+    check_rate_limit(client_id)
+
+    try:
+        return process_staff_message(request.message, request.session_id, db)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Sistem Hatası: {str(e)}")
+
 
 @router.get("/daily-summary", summary="Günlük AI özet raporu")
 def get_daily_summary(db: Session = Depends(get_db)):

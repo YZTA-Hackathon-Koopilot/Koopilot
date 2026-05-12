@@ -60,6 +60,13 @@ export const analyzeMessage = async (message, sessionId = null) => {
   });
   return response.data;
 };
+export const askStaffAssistant = async (message, sessionId = null) => {
+  const response = await api.post('/ai/staff-assistant', {
+    message,
+    session_id: sessionId,
+  });
+  return response.data;
+};
 export const getInventory = async () => {
   const response = await api.get('/inventory');
   return response.data;

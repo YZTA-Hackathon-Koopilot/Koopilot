@@ -14,7 +14,7 @@ import { getCurrentUser, logoutUser, setAuthToken } from './services/api';
 import { toDisplayText } from './utils/display';
 
 const initialChatMessages = [
-  { id: 1, type: 'ai', text: 'Merhaba! Ben Koopilot. Sipariş, stok veya kargo ile ilgili size nasıl yardımcı olabilirim? 🌿' }
+  { id: 1, type: 'ai', text: 'Merhaba! Ben Koopilot operasyon asistanı. Aktif siparişleri, kritik stokları, kargo durumlarını ve günlük özeti sorabilirsiniz. Bir müşteri mesajı yapıştırırsanız sipariş taslağı ve cevap önerisi de çıkarırım. 🌿' }
 ];
 
 const createSessionId = () => `session_${Math.random().toString(36).substr(2, 9)}`;
