@@ -452,6 +452,39 @@ def _normalize_shipping_status(status: str | None):
     return status or "Hazırlanıyor"
 
 
+def _looks_like_staff_write_request(message: str):
+    normalized = normalize_text(message)
+    domains = [
+        "stok", "fiyat", "siparis", "sipariş", "kargo", "urun", "ürün",
+        "order", "inventory", "shipping",
+    ]
+    write_verbs = [
+        "yap", "guncelle", "degistir", "artir", "azalt", "cikar", "çıkar",
+        "katina", "katına", "onayla", "reddet", "sil", "ekle", "verildi",
+        "teslim", "ayarla", "duzenle", "düzenle",
+    ]
+    return any(domain in normalized for domain in domains) and any(verb in normalized for verb in write_verbs)
+
+
+def _resolve_bulk_products(decision: schemas.StaffAssistantDecision, db: Session):
+    scope = normalize_text(decision.bulk_scope or "")
+    products = []
+
+    if decision.product_names:
+        seen_ids = set()
+        for name in decision.product_names:
+            product = _find_staff_product(name, db)
+            if product and product.id not in seen_ids:
+                products.append(product)
+                seen_ids.add(product.id)
+        return products
+
+    query = db.query(models.Product)
+    if "critical" in scope or "kritik" in scope or "low" in scope or "dusuk" in scope:
+        query = query.filter(models.Product.stock < 10)
+    return query.order_by(models.Product.name.asc()).all()
+
+
 def _execute_staff_decision(decision: schemas.StaffAssistantDecision, message: str, session_id: str | None, db: Session):
     action = decision.action
     normalized = normalize_text(message)
@@ -610,6 +643,76 @@ def _execute_staff_decision(decision: schemas.StaffAssistantDecision, message: s
         db.refresh(product)
         return {"ok": True, "executed": True, "action": action, "updates": updates, "product": _serialize_product(product)}
 
+    if action == "bulk_update_products":
+        products = _resolve_bulk_products(decision, db)
+        if not products:
+            return {
+                "ok": False,
+                "executed": False,
+                "action": action,
+                "error": "Toplu güncelleme için uygun ürün bulunamadı.",
+            }
+
+        has_stock_operation = any(value is not None for value in [decision.stock, decision.stock_multiplier, decision.stock_delta])
+        has_price_operation = any(value is not None for value in [decision.price, decision.price_multiplier, decision.price_delta])
+        if not has_stock_operation and not has_price_operation:
+            return {
+                "ok": False,
+                "executed": False,
+                "action": action,
+                "error": "Toplu güncelleme için stok veya fiyat işlemi belirtilmedi.",
+            }
+
+        updated = []
+        try:
+            for product in products:
+                before = _serialize_product(product)
+
+                if decision.stock is not None:
+                    product.stock = decision.stock
+                if decision.stock_multiplier is not None:
+                    product.stock = product.stock * decision.stock_multiplier
+                if decision.stock_delta is not None:
+                    product.stock = product.stock + decision.stock_delta
+
+                if decision.price is not None:
+                    product.price = decision.price
+                if decision.price_multiplier is not None:
+                    product.price = product.price * decision.price_multiplier
+                if decision.price_delta is not None:
+                    product.price = product.price + decision.price_delta
+
+                if product.stock < 0:
+                    raise ValueError(f"{product.name} stok değeri negatif olamaz.")
+                if product.price < 0:
+                    raise ValueError(f"{product.name} fiyat değeri negatif olamaz.")
+
+                updated.append({
+                    "before": before,
+                    "after": _serialize_product(product),
+                })
+
+            db.commit()
+            for product in products:
+                db.refresh(product)
+
+            return {
+                "ok": True,
+                "executed": True,
+                "action": action,
+                "count": len(products),
+                "updated_products": [
+                    {
+                        "before": item["before"],
+                        "after": _serialize_product(db.query(models.Product).filter(models.Product.id == item["before"]["id"]).first()),
+                    }
+                    for item in updated
+                ],
+            }
+        except ValueError as exc:
+            db.rollback()
+            return {"ok": False, "executed": False, "action": action, "error": str(exc)}
+
     if action == "create_product":
         payload = decision.product
         if not payload:
@@ -712,7 +815,22 @@ def process_staff_message(message: str, session_id: str | None, db: Session, cur
     operation_result = _execute_staff_decision(decision, message, session_id, db)
     refreshed_context = _build_staff_context(db, current_user)
 
-    if decision.action in {"chat", "unknown"} and operation_result.get("ok"):
+    if decision.action in {"chat", "unknown"} and _looks_like_staff_write_request(message):
+        operation_result = {
+            "ok": False,
+            "executed": False,
+            "action": decision.action,
+            "error": "Mesaj operasyonel bir değişiklik isteği gibi görünüyor ancak uygulanabilir bir backend aksiyonuna eşleşmedi. Veritabanında değişiklik yapılmadı.",
+            "gemini_response": decision.response,
+        }
+        final_text = compose_staff_response_with_ai(
+            message=message,
+            context=refreshed_context,
+            decision=decision,
+            operation_result=operation_result,
+            history=history,
+        )
+    elif decision.action in {"chat", "unknown"} and operation_result.get("ok"):
         final_text = decision.response
     else:
         final_text = compose_staff_response_with_ai(

@@ -88,6 +88,10 @@ Seçilebilir action'lar:
 - list_products: stok/ürün listeleme
 - product_detail: tek ürün stok/fiyat detayı
 - update_product: ürün stok/fiyat güncelleme
+- bulk_update_products: birden fazla ürünün stok/fiyatını toplu güncelleme. Örnekler:
+  * "tüm stokları 2 katına çıkar" -> bulk_scope="all_products", stock_multiplier=2
+  * "kritik stokları 5 artır" -> bulk_scope="critical_stock", stock_delta=5
+  * "tüm fiyatları yüzde 10 artır" -> bulk_scope="all_products", price_multiplier=1.1
 - create_product: yeni ürün oluşturma
 - list_shipments: kargo/takipteki siparişleri listeleme
 - update_shipping: sipariş kargo durumunu güncelleme
@@ -106,6 +110,7 @@ Personelin son mesajı:
 
 JSON üret. response alanı, personele doğal bir ilk cevap/niyet açıklaması olsun.
 Veritabanı işleminin yapıldığını iddia etme; backend işlemi uyguladıktan sonra nihai cevap ayrıca üretilecek.
+Stok, fiyat, sipariş, kargo veya ürün üzerinde değişiklik isteyen mesajlarda action="chat" seçme; uygun operasyon action'ını seç veya eksik bilgi varsa action="unknown" ile netleştir.
 """
     response = client.models.generate_content(
         model=get_staff_model(),
@@ -136,6 +141,7 @@ Nihai cevabını şu kurallarla yaz:
 - Türkçe, doğal, net ve işe dönük ol.
 - Personele adıyla hitap edeceksen güncel bağlamdaki current_user.preferred_address değerini kullan. Her cevapta zorla tekrar etme; selamlaşma, kişisel cevap ve önemli işlem sonuçlarında doğal kullan.
 - Yapılan işlem varsa sonucunu açıkça söyle.
+- Backend operasyon sonucu executed=false ise işlem yapılmamıştır. Böyle bir durumda kesinlikle "güncelledim", "onayladım", "yaptım" gibi başarı iddiası yazma.
 - Liste/veri varsa okunabilir maddelerle özetle.
 - Eksik bilgi veya hata varsa personelin bir sonraki adımını söyle.
 - Müşteri destek botu gibi cevap verme.

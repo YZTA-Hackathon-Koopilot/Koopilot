@@ -80,6 +80,7 @@ class StaffAssistantDecision(BaseModel):
         "list_products",
         "product_detail",
         "update_product",
+        "bulk_update_products",
         "create_product",
         "list_shipments",
         "update_shipping",
@@ -92,8 +93,14 @@ class StaffAssistantDecision(BaseModel):
     order_status: Optional[str] = Field(None, description="Listeleme filtresi: draft, approved, shipped, rejected, active, all")
     product_name: Optional[str] = Field(None, description="Ürün işlemleri için ürün adı")
     product: Optional[StaffProductPayload] = Field(None, description="Yeni ürün veya ürün güncelleme alanları")
+    product_names: List[str] = Field(default_factory=list, description="Toplu işlem belirli ürünlerle sınırlıysa ürün adları")
+    bulk_scope: Optional[str] = Field(None, description="Toplu işlem kapsamı: all_products, critical_stock veya matching_products")
     stock: Optional[float] = Field(None, description="Ürün stok güncelleme değeri")
     price: Optional[float] = Field(None, description="Ürün fiyat güncelleme değeri")
+    stock_multiplier: Optional[float] = Field(None, description="Stokları çarpmak için katsayı. Örn: iki katına çıkar -> 2")
+    price_multiplier: Optional[float] = Field(None, description="Fiyatları çarpmak için katsayı")
+    stock_delta: Optional[float] = Field(None, description="Stoklara eklenecek/çıkarılacak miktar")
+    price_delta: Optional[float] = Field(None, description="Fiyatlara eklenecek/çıkarılacak tutar")
     shipping_status: Optional[str] = Field(None, description="Kargo durumu")
     customer_message: Optional[str] = Field(None, description="Personelin analiz ettirmek istediği müşteri mesajı")
     needs_confirmation: bool = Field(False, description="İşlem için ek onay ya da bilgi gerekiyorsa true")
