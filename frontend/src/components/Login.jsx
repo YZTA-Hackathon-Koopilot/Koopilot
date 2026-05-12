@@ -23,8 +23,8 @@ import logoUrl from "../assets/logo.png";
 
 const teamLinks = [
   { name: "Kaan", href: "https://github.com/kkaan1907" },
-  { name: "Zeynep", href: "https://github.com/search?q=Zeynep&type=users" },
-  { name: "Muhammed", href: "https://github.com/muhammedkoseoglu" },
+  { name: "Zeynep", href: "https://github.com/turkelizeynepyagmur-wq" },
+  { name: "Muhammed", href: "https://github.com/Vartmor" },
 ];
 
 const ParticleNetwork = () => {
