@@ -340,6 +340,33 @@ def _resolve_order_statuses(status_text: str | None, default_active: bool = Fals
     return [models.OrderStatus.DRAFT, models.OrderStatus.APPROVED, models.OrderStatus.SHIPPED] if default_active else None
 
 
+COMMON_FEMALE_NAMES = {
+    "ayse", "fatma", "zeynep", "zehra", "elif", "emel", "esra", "ece",
+    "merve", "busra", "kubra", "sena", "sude", "melis", "deniz", "dilara",
+}
+
+COMMON_MALE_NAMES = {
+    "ahmet", "mehmet", "muhammed", "kaan", "enes", "atil", "ali", "veli",
+    "mustafa", "emre", "burak", "furkan", "yusuf", "omer", "hasan", "huseyin",
+}
+
+
+def _build_staff_address(name: str | None):
+    if not name:
+        return None
+
+    first_name = name.strip().split()[0]
+    if not first_name:
+        return None
+
+    normalized = normalize_text(first_name)
+    if normalized in COMMON_FEMALE_NAMES:
+        return f"{first_name} Hanım"
+    if normalized in COMMON_MALE_NAMES:
+        return f"{first_name} Bey"
+    return f"Sayın {first_name}"
+
+
 def _build_staff_context(db: Session, current_user: models.User | None):
     products = db.query(models.Product).order_by(models.Product.stock.asc()).limit(20).all()
     recent_orders = db.query(models.Order).order_by(models.Order.order_date.desc()).limit(12).all()
@@ -354,6 +381,8 @@ def _build_staff_context(db: Session, current_user: models.User | None):
         "current_user": {
             "id": current_user.id if current_user else None,
             "name": current_user.name if current_user else None,
+            "first_name": current_user.name.strip().split()[0] if current_user and current_user.name else None,
+            "preferred_address": _build_staff_address(current_user.name if current_user else None),
             "email": current_user.email if current_user else None,
             "role": current_user.role if current_user else None,
         },
