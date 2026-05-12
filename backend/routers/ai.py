@@ -360,6 +360,8 @@ def _build_staff_address(name: str | None):
         return None
 
     normalized = normalize_text(first_name)
+    if normalized == "demo":
+        return "Demo Kullanıcı"
     if normalized in COMMON_FEMALE_NAMES:
         return f"{first_name} Hanım"
     if normalized in COMMON_MALE_NAMES:
