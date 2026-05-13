@@ -113,17 +113,26 @@ JSON üret. response alanı, personele doğal bir ilk cevap/niyet açıklaması 
 Veritabanı işleminin yapıldığını iddia etme; backend işlemi uyguladıktan sonra nihai cevap ayrıca üretilecek.
 Stok, fiyat, sipariş, kargo veya ürün üzerinde değişiklik isteyen mesajlarda action="chat" seçme; uygun operasyon action'ını seç veya eksik bilgi varsa action="unknown" ile netleştir.
 """
-    response = client.models.generate_content(
-        model=get_staff_model(),
-        contents=prompt,
-        config={
-            "response_mime_type": "application/json",
-            "response_schema": StaffAssistantDecision,
-            "temperature": 0.15,
-        },
-    )
-    data = json.loads(response.text)
-    return StaffAssistantDecision(**data)
+    try:
+        response = client.models.generate_content(
+            model=get_staff_model(),
+            contents=prompt,
+            config={
+                "response_mime_type": "application/json",
+                "response_schema": StaffAssistantDecision,
+                "temperature": 0.15,
+            },
+        )
+        data = json.loads(response.text)
+        return StaffAssistantDecision(**data)
+    except Exception as e:
+        print(f"Staff AI Decision Error: {e}")
+        # Robust fallback for demo stability
+        return StaffAssistantDecision(
+            action="chat",
+            response="Şu an Gemini servislerinde bir yoğunluk yaşanıyor. Size yardımcı olmaya devam edebilirim ancak bazı operasyonel yeteneklerim geçici olarak kısıtlanmış olabilir. Lütfen birazdan tekrar deneyin.",
+            confidence=0.5
+        )
 
 
 def compose_staff_response_with_ai(
@@ -164,20 +173,21 @@ Güncel bağlam:
 Son panel sohbet geçmişi:
 {_to_json(history or [])}
 """
-    response = client.models.generate_content(
-        model=get_staff_model(),
-        contents=prompt,
-        config={
-            "response_mime_type": "application/json",
-            "response_schema": StaffAssistantTextResponse,
-            "temperature": 0.35,
-        },
-    )
     try:
+        response = client.models.generate_content(
+            model=get_staff_model(),
+            contents=prompt,
+            config={
+                "response_mime_type": "application/json",
+                "response_schema": StaffAssistantTextResponse,
+                "temperature": 0.35,
+            },
+        )
         data = json.loads(response.text)
         return StaffAssistantTextResponse(**data).response.strip()
-    except Exception:
-        return (response.text or "").strip()
+    except Exception as e:
+        print(f"Compose Staff Response Error: {e}")
+        return decision.response # Use the initial decision response as fallback
 
 
 def _extract_quantity(message: str, keyword: str) -> float | None:
@@ -306,27 +316,25 @@ def analyze_message_with_ai(message: str, company_profile: str = "Koopilot - KOB
        - Miktar isterken katalogdaki birimi kullan (Örn: "Kaç kavanoz çilek reçeli istersiniz?").
        - Eğer stokta olmayan bir ürün istenirse nazikçe belirt ve alternatif öner.
     """
-    response = client.models.generate_content(
-        model='gemini-3.1-flash-lite',
-        contents=prompt,
-        config={
-            'response_mime_type': 'application/json',
-            'response_schema': AIFinalResponse,
-            'temperature': 0.1
-        },
-    )
     try:
+        response = client.models.generate_content(
+            model='gemini-3.1-flash-lite',
+            contents=prompt,
+            config={
+                'response_mime_type': 'application/json',
+                'response_schema': AIFinalResponse,
+                'temperature': 0.1
+            },
+        )
         data = json.loads(response.text)
         return AIFinalResponse(**data)
     except Exception as e:
         error_msg = str(e)
-        print(f"AI İşlem Hatası: {error_msg}")
+        print(f"AI Analysis Error: {error_msg}")
         
-        if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
-            return AIFinalResponse(
-                intent="general_question",
-                ai_reply_draft="Sistemimizde anlık bir yoğunluk yaşanıyor. Lütfen yaklaşık 30-40 saniye bekleyip tekrar deneyiniz."
-            )
+        if "503" in error_msg or "UNAVAILABLE" in error_msg or "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
+            # Fallback to local analysis for demo stability
+            return analyze_message_locally(message)
 
         return analyze_message_locally(message)
 
@@ -371,8 +379,21 @@ def generate_campaign_suggestion(product_name: str, price: float, stock: float) 
             f"- Ürün görselinde kooperatif emeği ve doğal içerik vurgusu öne çıkarılabilir."
         )
 
-    response = client.models.generate_content(
-        model='gemini-3.1-flash-lite',
-        contents=prompt
-    )
-    return response.text.strip()
+    try:
+        response = client.models.generate_content(
+            model='gemini-3.1-flash-lite',
+            contents=prompt
+        )
+        return response.text.strip()
+    except Exception as e:
+        print(f"Campaign Suggestion Error: {e}")
+        return (
+            f"### Kampanya Fikri\n"
+            f"- **{product_name} Bahar Paketi:** %15 indirimle stokları hareketlendirebiliriz.\n"
+            f"- Ürünün doğal ve kooperatif emeğiyle hazırlanmış yönünü öne çıkaralım.\n\n"
+            f"### Panelde Uygulanabilir Aksiyonlar\n"
+            f"- Ürün fiyatını {round(price * 0.85, 2)} TL olarak güncelle.\n\n"
+            f"### Stratejik Notlar\n"
+            f"- Bu kampanya metni Telegram veya sosyal medya paylaşımında manuel kullanılabilir.\n"
+            f"- Ürün görselinde kooperatif emeği ve doğal içerik vurgusu öne çıkarılabilir."
+        )

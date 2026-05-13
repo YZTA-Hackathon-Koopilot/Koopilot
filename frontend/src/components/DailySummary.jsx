@@ -319,12 +319,12 @@ const DailySummary = () => {
   if (!summary) return <div style={{ padding: "24px" }}>Veri bulunamadı.</div>;
 
   const multiplier =
-    timeRange === "daily" ? 1 : timeRange === "monthly" ? 30 : 365;
+    timeRange === "daily" ? 1 : timeRange === "monthly" ? 20 : 365;
   const labelPrefix =
     timeRange === "daily"
       ? "Günlük"
       : timeRange === "monthly"
-        ? "30 Günlük Projeksiyon"
+        ? "20 Günlük Projeksiyon"
         : "Yıllık Projeksiyon";
   const totalMessages = Number(summary.total_messages || 0) * multiplier;
   const lowStockCount = Number(summary.low_stock_count || 0);
@@ -469,7 +469,7 @@ const DailySummary = () => {
         >
           {[
             ["daily", "Günlük"],
-            ["monthly", "30 Günlük"],
+            ["monthly", "20 Günlük"],
             ["yearly", "Yıllık"],
           ].map(([value, label]) => (
             <button
@@ -637,7 +637,7 @@ const DailySummary = () => {
             gap: "8px",
           }}
         >
-          <Sparkles size={20} color="var(--primary-mid)" /> AI Akıllı Analizler
+          <Sparkles size={20} color="var(--primary-mid)" /> {labelPrefix} AI Akıllı Analizler
         </h3>
         <div
           style={{
@@ -736,8 +736,7 @@ const DailySummary = () => {
             gap: "8px",
           }}
         >
-          <Trees size={20} color="#F4A261" /> Koopilot Insights - Haftalık
-          Performans
+          <Trees size={20} color="#F4A261" /> Koopilot Insights - {labelPrefix} Performans
         </h3>
 
         {isInsightsLoading ? (
@@ -845,7 +844,7 @@ const DailySummary = () => {
                           color: "var(--primary-dark)",
                         }}
                       >
-                        {Number(p.total_sold || 0).toLocaleString("tr-TR")} Satış
+                        {Number((p.total_sold || 0) * multiplier).toLocaleString("tr-TR")} Satış
                       </div>
                       <div
                         style={{ fontSize: "12px", color: "var(--success)" }}
