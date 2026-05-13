@@ -28,6 +28,7 @@ const getChatStorageKeys = (user) => {
   return {
     currentChat: `koopilot_${userKey}_current_chat`,
     currentSession: `koopilot_${userKey}_current_session`,
+    currentDraft: `koopilot_${userKey}_current_draft`,
     history: `koopilot_${userKey}_chat_history`
   };
 };
@@ -58,6 +59,9 @@ function App() {
   const [chatSessionId, setChatSessionId] = useState(() => localStorage.getItem(getChatStorageKeys(currentUser).currentSession) || createSessionId());
   const [chatHistory, setChatHistory] = useState(() => {
     return readStoredJson(getChatStorageKeys(currentUser).history, []);
+  });
+  const [chatDraft, setChatDraft] = useState(() => {
+    return localStorage.getItem(getChatStorageKeys(currentUser).currentDraft) || '';
   });
 
   useEffect(() => {
@@ -99,11 +103,19 @@ function App() {
     });
   }, [chatMessages, chatSessionId, currentUser]);
 
-  const loadChatStateForUser = (user) => {
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const storageKeys = getChatStorageKeys(currentUser);
+    localStorage.setItem(storageKeys.currentDraft, chatDraft);
+  }, [chatDraft, currentUser]);
+
+  const loadChatStateForUser = (user, { startFresh = false } = {}) => {
     const storageKeys = getChatStorageKeys(user);
-    setChatMessages(readStoredJson(storageKeys.currentChat, initialChatMessages));
-    setChatSessionId(localStorage.getItem(storageKeys.currentSession) || createSessionId());
+    setChatMessages(startFresh ? initialChatMessages : readStoredJson(storageKeys.currentChat, initialChatMessages));
+    setChatSessionId(startFresh ? createSessionId() : localStorage.getItem(storageKeys.currentSession) || createSessionId());
     setChatHistory(readStoredJson(storageKeys.history, []));
+    setChatDraft(startFresh ? '' : localStorage.getItem(storageKeys.currentDraft) || '');
     setChatLoading(false);
   };
 
@@ -118,7 +130,7 @@ function App() {
     getCurrentUser()
       .then((user) => {
         setCurrentUser(user);
-        loadChatStateForUser(user);
+        loadChatStateForUser(user, { startFresh: true });
       })
       .catch(() => {
         localStorage.removeItem('koopilot_auth_token');
@@ -131,7 +143,7 @@ function App() {
 
   const handleLogin = (user) => {
     setCurrentUser(user);
-    loadChatStateForUser(user);
+    loadChatStateForUser(user, { startFresh: true });
     setActiveTab('messages');
   };
 
@@ -144,6 +156,7 @@ function App() {
     setChatMessages(initialChatMessages);
     setChatSessionId(createSessionId());
     setChatHistory([]);
+    setChatDraft('');
     setChatLoading(false);
     setActiveTab('messages');
   };
@@ -159,11 +172,13 @@ function App() {
   const handleNewChat = () => {
     setChatSessionId(createSessionId());
     setChatMessages(initialChatMessages);
+    setChatDraft('');
   };
 
   const handleLoadChat = (historyItem) => {
     setChatSessionId(historyItem.id);
     setChatMessages(Array.isArray(historyItem.messages) ? historyItem.messages : initialChatMessages);
+    setChatDraft('');
     setActiveTab('messages');
   };
 
@@ -193,6 +208,8 @@ function App() {
             onNewChat={handleNewChat}
             onLoadChat={handleLoadChat}
             onDeleteChat={handleDeleteChat}
+            input={chatDraft}
+            setInput={setChatDraft}
           />
         );
       case 'orders':
@@ -238,6 +255,8 @@ function App() {
             onNewChat={handleNewChat}
             onLoadChat={handleLoadChat}
             onDeleteChat={handleDeleteChat}
+            input={chatDraft}
+            setInput={setChatDraft}
           />
         );
     }

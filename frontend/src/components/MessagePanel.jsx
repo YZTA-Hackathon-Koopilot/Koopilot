@@ -3,8 +3,7 @@ import { Send, Bot, User, AlertCircle, ShoppingBag, History, Plus, Trash2, X } f
 import { askStaffAssistant } from '../services/api';
 import { getApiErrorMessage, toDisplayText } from '../utils/display';
 import MarkdownMessage from './MarkdownMessage';
-const MessagePanel = ({ messages, setMessages, isLoading, setIsLoading, sessionId, chatHistory, onNewChat, onLoadChat, onDeleteChat }) => {
-  const [input, setInput] = useState('');
+const MessagePanel = ({ messages, setMessages, isLoading, setIsLoading, sessionId, chatHistory, onNewChat, onLoadChat, onDeleteChat, input, setInput }) => {
   const [showHistory, setShowHistory] = useState(false);
   const messagesEndRef = useRef(null);
   const scrollToBottom = () => {
