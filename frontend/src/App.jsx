@@ -47,6 +47,7 @@ function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [theme, setTheme] = useState(() => localStorage.getItem('koopilot_theme') || 'light');
   const [authChecking, setAuthChecking] = useState(Boolean(savedAuthToken));
+  const [isHeroLoggingOut, setIsHeroLoggingOut] = useState(false);
   const [currentUser, setCurrentUser] = useState(() => {
     return savedAuthToken ? readStoredJson('koopilot_current_user', null) : null;
   });
@@ -145,6 +146,14 @@ function App() {
     setChatHistory([]);
     setChatLoading(false);
     setActiveTab('messages');
+  };
+
+  const handleHeroLogout = () => {
+    setIsHeroLoggingOut(true);
+    window.setTimeout(() => {
+      handleLogout();
+      setIsHeroLoggingOut(false);
+    }, 260);
   };
 
   const handleNewChat = () => {
@@ -255,6 +264,20 @@ function App() {
     return <Login onLogin={handleLogin} theme={theme} setTheme={setTheme} />;
   }
 
+  if (activeTab === 'home') {
+    return (
+      <Login
+        onLogin={handleLogin}
+        theme={theme}
+        setTheme={setTheme}
+        currentUser={currentUser}
+        onBackToPanel={() => setActiveTab('messages')}
+        onLogout={handleHeroLogout}
+        isLoggingOut={isHeroLoggingOut}
+      />
+    );
+  }
+
   return (
     <div className="dashboard-layout">
       <Sidebar
@@ -262,6 +285,7 @@ function App() {
         setActiveTab={setActiveTab}
         currentUser={currentUser}
         onLogout={handleLogout}
+        onBrandClick={() => setActiveTab('home')}
       />
       <div className="main-container">
         <Header 

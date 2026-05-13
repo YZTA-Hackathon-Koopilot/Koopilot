@@ -10,7 +10,7 @@ import {
   Bot,
 } from 'lucide-react';
 import logoUrl from '../assets/logo.png';
-const Sidebar = ({ activeTab, setActiveTab, currentUser, onLogout }) => {
+const Sidebar = ({ activeTab, setActiveTab, currentUser, onLogout, onBrandClick }) => {
   const menuItems = [
     { id: 'messages', label: 'Operasyon Asistanı', icon: <Bot size={20} /> },
     { id: 'orders', label: 'Siparişler', icon: <Wheat size={20} /> },
@@ -22,14 +22,20 @@ const Sidebar = ({ activeTab, setActiveTab, currentUser, onLogout }) => {
   ];
   return (
     <div className="sidebar">
-      <div className="sidebar-brand">
+      <button
+        type="button"
+        className="sidebar-brand"
+        onClick={onBrandClick}
+        aria-label="Ana menüye dön"
+      >
         <div className="brand-logo">
           <img src={logoUrl} alt="Koopilot" style={{ width: "24px", height: "24px", objectFit: "contain" }} />
         </div>
         <div className="brand-text">
           <h1 className="sidebar-brand-text">Koopilot</h1>
+          <span className="sidebar-brand-hint">Ana menüye dön</span>
         </div>
-      </div>
+      </button>
       <nav className="sidebar-nav">
         {menuItems.map((item) => (
           <button

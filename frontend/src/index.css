@@ -250,7 +250,49 @@ body {
     align-items: center;
     gap: 12px;
     margin-bottom: 48px;
-    padding: 0 8px;
+    padding: 8px;
+    width: 100%;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 16px;
+    color: var(--sidebar-text);
+    cursor: pointer;
+    text-align: left;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.18s ease;
+}
+.sidebar-brand:hover {
+    background-color: rgba(255, 255, 255, 0.09);
+    border-color: rgba(255, 255, 255, 0.16);
+    transform: translateY(-1px);
+}
+.sidebar-brand:focus-visible {
+    outline: 2px solid var(--primary-light);
+    outline-offset: 3px;
+}
+.brand-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+.sidebar-brand-hint {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    opacity: 0;
+    transform: translateY(-3px);
+    transition:
+        opacity 0.18s ease,
+        transform 0.18s ease;
+}
+.sidebar-brand:hover .sidebar-brand-hint,
+.sidebar-brand:focus-visible .sidebar-brand-hint {
+    opacity: 1;
+    transform: translateY(0);
 }
 .brand-logo {
     background-color: white;
@@ -878,6 +920,34 @@ body {
     gap: 8px;
     font-weight: 800;
 }
+.login-demo-context {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 18px 0 20px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background-color: color-mix(in srgb, var(--primary-light) 10%, var(--surface));
+    border: 1px solid color-mix(in srgb, var(--primary-light) 30%, transparent);
+}
+.login-demo-context span {
+    color: var(--text-light);
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+.login-demo-context strong {
+    color: var(--text-dark);
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+.login-return-card {
+    animation: heroPanelEnter 260ms ease-out both;
+}
+.login-return-card.is-leaving {
+    pointer-events: none;
+    animation: loginReturnLeave 260ms ease-in both;
+}
 .login-hero-primary {
     padding: 0 22px;
     border-radius: 14px;
@@ -1226,6 +1296,19 @@ textarea:focus {
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes loginReturnLeave {
+    from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(14px) scale(0.98);
+        filter: blur(2px);
     }
 }
 

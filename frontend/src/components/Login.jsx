@@ -3,6 +3,7 @@ import { FaGithub, FaTelegramPlane } from "react-icons/fa";
 import {
   Lock,
   LogIn,
+  LogOut,
   Mail,
   MessageSquare,
   PackageCheck,
@@ -26,6 +27,8 @@ const teamLinks = [
   { name: "Zeynep", href: "https://github.com/turkelizeynepyagmur-wq" },
   { name: "Muhammed", href: "https://github.com/Vartmor" },
 ];
+
+const getFirstName = (name) => (name || "").trim().split(/\s+/)[0] || "Personel";
 
 const ParticleNetwork = () => {
   const canvasRef = useRef(null);
@@ -163,7 +166,7 @@ const ParticleNetwork = () => {
   );
 };
 
-const Login = ({ onLogin, theme, setTheme }) => {
+const Login = ({ onLogin, theme, setTheme, currentUser = null, onBackToPanel = null, onLogout = null, isLoggingOut = false }) => {
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -290,9 +293,41 @@ const Login = ({ onLogin, theme, setTheme }) => {
 
         {/* ── Sağ: Flip Kart (ön = giriş, arka = kayıt) ── */}
         <section className="login-form-panel" aria-label="Giriş paneli">
-          <div
-            className={`login-card-inner${!isLoginMode ? " is-flipped" : ""}`}
-          >
+          {onBackToPanel ? (
+            <div className={`login-card-face login-card-front login-return-card${isLoggingOut ? " is-leaving" : ""}`}>
+              <div className="login-panel-header">
+                <div>
+                  <h2>Merhaba {getFirstName(currentUser?.name)}</h2>
+                  <p>Demo oturumunuz açık. Ana sayfayı inceledikten sonra operasyon paneline dönebilirsiniz.</p>
+                </div>
+                <div className="login-panel-mark">
+                  <img src={logoUrl} alt="Logo" style={{ width: "20px", height: "20px", objectFit: "contain" }} />
+                </div>
+              </div>
+              <div className="login-demo-context">
+                <span>Aktif hesap</span>
+                <strong>{currentUser?.email || "demo@koopilot.local"}</strong>
+              </div>
+              <button
+                type="button"
+                onClick={onBackToPanel}
+                className="login-submit"
+              >
+                <LogIn size={18} /> Panele Geri Dön
+              </button>
+              <button
+                type="button"
+                onClick={onLogout}
+                className="login-demo-button"
+                disabled={isLoggingOut}
+              >
+                <LogOut size={18} /> {isLoggingOut ? "Çıkış yapılıyor..." : "Çıkış Yap"}
+              </button>
+            </div>
+          ) : (
+            <div
+              className={`login-card-inner${!isLoginMode ? " is-flipped" : ""}`}
+            >
             {/* ÖN YÜZ — Giriş */}
             <div
               className="login-card-face login-card-front"
@@ -446,6 +481,7 @@ const Login = ({ onLogin, theme, setTheme }) => {
               </button>
             </div>
           </div>
+          )}
         </section>
       </main>
 
