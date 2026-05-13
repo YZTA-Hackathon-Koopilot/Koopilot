@@ -206,7 +206,7 @@ function App() {
           />
         );
       case 'calendar':
-        return <CalendarPanel />;
+        return <CalendarPanel currentUser={currentUser} />;
       case 'settings':
         return (
           <SettingsPanel

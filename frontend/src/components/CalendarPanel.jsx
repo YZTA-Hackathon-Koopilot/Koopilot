@@ -7,22 +7,101 @@ const BADGE_COLORS = ['#52B788', '#F4A261', '#E76F51', '#2A9D8F', '#E9C46A'];
 
 const formatDateKey = (year, month, day) => `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
-const CalendarPanel = () => {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [tasks, setTasks] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem('koopilot_calendar_tasks')) || [];
-    } catch {
-      return [];
+const formatDateFromOffset = (offsetDays) => {
+  const date = new Date();
+  date.setDate(date.getDate() + offsetDays);
+  return formatDateKey(date.getFullYear(), date.getMonth(), date.getDate());
+};
+
+const getUserStorageKey = (user) => {
+  const rawKey = user?.email || user?.id || 'guest';
+  return rawKey.toString().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+};
+
+const getCalendarStorageKey = (user) => `koopilot_${getUserStorageKey(user)}_calendar_tasks`;
+
+const getDemoTasks = () => [
+  {
+    id: 'demo-calendar-yesterday-summary',
+    title: 'Günlük operasyon özetini ekiple paylaş',
+    date: formatDateFromOffset(-1),
+    color: '#52B788',
+    completed: true
+  },
+  {
+    id: 'demo-calendar-telegram-orders',
+    title: 'Telegram siparişlerini kontrol et',
+    date: formatDateFromOffset(0),
+    color: '#2A9D8F',
+    completed: false
+  },
+  {
+    id: 'demo-calendar-stock-alerts',
+    title: 'Kritik stok uyarılarını üretim listesine ekle',
+    date: formatDateFromOffset(0),
+    color: '#F4A261',
+    completed: false
+  },
+  {
+    id: 'demo-calendar-shipping-update',
+    title: 'Onaylanan siparişlerin kargo durumlarını güncelle',
+    date: formatDateFromOffset(1),
+    color: '#E9C46A',
+    completed: false
+  },
+  {
+    id: 'demo-calendar-production-plan',
+    title: 'Nar ekşisi ve salça için haftalık üretim planı',
+    date: formatDateFromOffset(2),
+    color: '#E76F51',
+    completed: false
+  },
+  {
+    id: 'demo-calendar-cooperative-meeting',
+    title: 'Kooperatif yönetim toplantısı: online sipariş akışı',
+    date: formatDateFromOffset(5),
+    color: '#52B788',
+    completed: false
+  }
+];
+
+const readStoredTasks = (storageKey, currentUser) => {
+  try {
+    const saved = localStorage.getItem(storageKey);
+    const parsedTasks = saved ? JSON.parse(saved) : null;
+    if (Array.isArray(parsedTasks) && parsedTasks.length > 0) {
+      return parsedTasks;
     }
+
+    const isDemoUser = currentUser?.email === 'demo@koopilot.local';
+    if (isDemoUser) {
+      return getDemoTasks();
+    }
+
+    const legacyTasks = JSON.parse(localStorage.getItem('koopilot_calendar_tasks') || '[]');
+    return Array.isArray(legacyTasks) ? legacyTasks : [];
+  } catch {
+    return currentUser?.email === 'demo@koopilot.local' ? getDemoTasks() : [];
+  }
+};
+
+const CalendarPanel = ({ currentUser }) => {
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const storageKey = getCalendarStorageKey(currentUser);
+  const [tasks, setTasks] = useState(() => {
+    return readStoredTasks(storageKey, currentUser);
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [newTaskTitle, setNewTaskTitle] = useState('');
 
   useEffect(() => {
-    localStorage.setItem('koopilot_calendar_tasks', JSON.stringify(tasks));
-  }, [tasks]);
+    setTasks(readStoredTasks(storageKey, currentUser));
+  }, [currentUser, storageKey]);
+
+  useEffect(() => {
+    localStorage.setItem(storageKey, JSON.stringify(tasks));
+  }, [storageKey, tasks]);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
