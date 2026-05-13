@@ -270,17 +270,17 @@ Frontend: **http://localhost:5173** adresinde çalışacaktır.
 - Mesaj kanalı: Web panel test akışı + opsiyonel Telegram Bot API + WhatsApp webhook altyapısı
 
 
-Canlı backend kontrolü:
+Canlı backend:
 
 ```text
+https://koopilot-backend.onrender.com/
 https://koopilot-backend.onrender.com/health
 https://koopilot-backend.onrender.com/docs
 ```
 
-Frontend deploy ortam değişkeni:
-
+Frontend:
 ```
-https://koopilot-backend.onrender.com
+https://koopilot.vercel.app/
 ```
 
 ---
