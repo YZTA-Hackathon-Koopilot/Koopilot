@@ -3,7 +3,7 @@
 </p>
 
 <h1 align="center">🤖 Koopilot</h1>
-<h3 align="center">Kadın Kooperatifleri için AI Destekli Sipariş, Stok ve Kargo Operasyon Ajanı</h3>
+<h3 align="center">Kadın Kooperatifleri için AI Destekli Sipariş, Stok ve Kargo Operasyon Ajanı ve Yönetim Paneli</h3>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white" alt="Python"/>
@@ -15,8 +15,10 @@
 </p>
 
 <p align="center">
-  <b>Web paneli ve mesaj kanallarından gelen müşteri mesajlarını siparişe dönüştürür,<br/>stok kontrol eder, kargo sorularını cevaplar ve yöneticiden onay alarak aksiyon üretir.</b>
+  <b>WhatssApp, Telegram gibi mesaj kanallarından gelen müşteri mesajlarını siparişe dönüştürür,<br/>stok kontrol eder, kargo sorularını cevaplar ve yöneticiden onay alarak aksiyon üretir.</b>
 </p>
+
+Web sitesi: https://koopilot.vercel.app/
 
 ---
 
@@ -38,7 +40,7 @@
 
 ## 🔴 Problem
 
-Kadın kooperatifleri ve küçük e-ticaret yapan KOBİ'ler, sipariş yönetimini WhatsApp, Instagram DM, mail ve telefon üzerinden **manuel olarak** yürütüyor.
+Kadın kooperatifleri ve küçük e-ticaret yapan KOBİ'ler, sipariş yönetimini WhatsApp, Telegram Instagram DM, mail ve telefon üzerinden **manuel olarak** yürütüyor. Bu da karışıklıklara sebep oluyor.
 
 | Sorun | Etki |
 |-------|------|
@@ -53,12 +55,12 @@ Kadın kooperatifleri ve küçük e-ticaret yapan KOBİ'ler, sipariş yönetimin
 
 ## 💡 Çözüm
 
-**Koopilot**, kooperatiflerin günlük operasyonlarını yöneten bir **AI operasyon ajanıdır** — basit bir chatbot değil.
+**Koopilot**, kooperatiflerin günlük operasyonlarını yöneten, **AI operasyon ajanına** sahip bir yönetim panelidir.
 
 ### Koopilot Ne Yapar?
 
 ```
-Müşteri Mesajı → AI Analiz → Niyet Çıkarımı → Aksiyon Önerisi → İnsan Onayı → Operasyon
+Müşteri Mesajlarına Gemini 3.1 flash-lite ile cevap verir, niyet çıkarımı yapar. Müşterinin sipariş vermesine yardımcı olur ve gelen siparişleri "Siparişler" sayfasına taslak olarak ekler.
 ```
 
 | Özellik | Açıklama |
@@ -149,7 +151,7 @@ Müşteri Mesajı → AI Analiz → Niyet Çıkarımı → Aksiyon Önerisi → 
 │          ┌──────────────────▼──────────────────┐        │
 │          │      React Dashboard (Vite)         │        │
 │          │  ┌─────────┐ ┌──────┐ ┌──────────┐  │        │
-│          │  │ Mesajlar │ │Stok  │ │Siparişler│  │        │
+│          │  │ Mesajlar│ │ Stok │ │Siparişler│  │        │
 │          │  └─────────┘ └──────┘ └──────────┘  │        │
 │          │  ┌─────────┐ ┌──────────────────┐   │        │
 │          │  │ Kargo   │ │  Günlük Özet     │   │        │
@@ -158,8 +160,6 @@ Müşteri Mesajı → AI Analiz → Niyet Çıkarımı → Aksiyon Önerisi → 
 │                                                         │
 └─────────────────────────────────────────────────────────┘
 ```
-
-> **Dürüst entegrasyon notu:** Web panelindeki mesaj akışı canlı çalışır. Telegram Bot API opsiyonel gerçek kanal olarak desteklenir. WhatsApp Business API için backend webhook doğrulama, mesaj işleme ve cevap gönderme adaptörü hazırlanmıştır; ancak canlı WhatsApp hesabı/tokenları tanımlı değilse ürün gerçek WhatsApp mesajı alıp göndermez. Demo sırasında bu durum UI'daki **Kanallar** sayfasında açıkça gösterilir.
 
 ---
 
@@ -262,22 +262,13 @@ Frontend: **http://localhost:5173** adresinde çalışacaktır.
 
 ---
 
-## 🌐 Canlı Demo Deploy
+## 🌐 Demoyu Erişin
 
-Hackathon demosu için önerilen canlı mimari:
 
 - Backend: Render Free Web Service
 - Frontend: Vercel, Netlify veya Render Static Site
 - Mesaj kanalı: Web panel test akışı + opsiyonel Telegram Bot API + WhatsApp webhook altyapısı
 
-Backend için repo kökünde `render.yaml` bulunur. Render blueprint veya manuel kurulumda temel ayarlar:
-
-```text
-Root Directory: backend
-Build Command: python -m pip install --upgrade pip && python -m pip install -r requirements.txt
-Start Command: python -m uvicorn main:app --host 0.0.0.0 --port $PORT
-Health Check Path: /health
-```
 
 Canlı backend kontrolü:
 
@@ -288,27 +279,9 @@ https://koopilot-backend.onrender.com/docs
 
 Frontend deploy ortam değişkeni:
 
-```env
-VITE_API_URL=https://koopilot-backend.onrender.com
 ```
-
-Vercel frontend ayarları:
-
-```text
-Framework Preset: Vite
-Root Directory: frontend
-Build Command: npm run build
-Output Directory: dist
-Install Command: npm install
+https://koopilot-backend.onrender.com
 ```
-
-Telegram webhook kurulumu:
-
-```bash
-curl -X POST "https://koopilot-backend.onrender.com/integrations/telegram/setup-webhook?drop_pending_updates=true"
-```
-
-Detaylı canlı demo planı için: [`docs/canli-demo-plani.md`](docs/canli-demo-plani.md)
 
 ---
 
@@ -377,21 +350,6 @@ YZTA-Hackathon-Koopilot/
 ├── .gitignore
 └── README.md
 ```
-
----
-
-## 🔮 Gelecek Geliştirmeler
-
-| Öncelik | Geliştirme | Açıklama |
-|---------|-----------|----------|
-| 🟡 | WhatsApp Business API | Backend adaptörü hazır; canlı bağlantı için Meta token/telefon kurulumu gerekir |
-| 🟢 | Telegram Bot API | Webhook altyapısı hazır; BotFather tokenı tanımlanınca gerçek kanal demosu çalışır |
-| 🟡 | Gerçek Kargo API | Aras, Yurtiçi, MNG kargo entegrasyonu |
-| 🟡 | Talep Tahmini | Geçmiş siparişlere dayalı ürün talep öngörüsü |
-| 🟢 | Çoklu Kooperatif Desteği | Birden fazla kooperatifin tek panelden yönetimi |
-| 🟢 | Mobil Uygulama | React Native ile mobil dashboard |
-
----
 
 ## 👥 Takım
 
