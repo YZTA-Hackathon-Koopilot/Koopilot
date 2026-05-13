@@ -262,7 +262,7 @@ Frontend: **http://localhost:5173** adresinde çalışacaktır.
 
 ---
 
-## 🌐 Demoyu Erişin
+## 🌐 Demoya Erişin
 
 
 - Backend: Render Free Web Service
