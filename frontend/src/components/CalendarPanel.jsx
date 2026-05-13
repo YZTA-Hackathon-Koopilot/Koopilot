@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Calendar as CalendarIcon, CheckCircle2, ChevronLeft, ChevronRight, Circle, Plus, Trash2, X } from 'lucide-react';
 
 const WEEK_DAYS = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
@@ -266,8 +267,10 @@ const CalendarPanel = ({ currentUser }) => {
         </div>
       </div>
 
-      {isModalOpen && selectedDate && (
-        <div style={{
+      {isModalOpen && selectedDate && createPortal((
+        <div
+          className="modal-overlay"
+          style={{
           position: 'fixed',
           inset: 0,
           backgroundColor: 'rgba(0,0,0,0.5)',
@@ -277,8 +280,12 @@ const CalendarPanel = ({ currentUser }) => {
           zIndex: 1000,
           backdropFilter: 'blur(4px)',
           padding: '20px'
-        }}>
-          <div style={{ backgroundColor: 'var(--surface)', padding: '32px', borderRadius: '24px', width: '100%', maxWidth: '500px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+        }}
+        >
+          <div
+            className="modal-container"
+            style={{ backgroundColor: 'var(--surface)', padding: '32px', borderRadius: '24px', width: '100%', maxWidth: '500px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}
+          >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <h3 style={{ margin: 0, fontSize: '20px', color: 'var(--text-dark)' }}>
                 {selectedDate.split('-')[2]} {MONTHS[Number(selectedDate.split('-')[1]) - 1]} {selectedDate.split('-')[0]} Görevleri
@@ -321,7 +328,7 @@ const CalendarPanel = ({ currentUser }) => {
             </div>
           </div>
         </div>
-      )}
+      ), document.body)}
     </div>
   );
 };
