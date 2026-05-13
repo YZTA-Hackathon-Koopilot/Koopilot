@@ -80,6 +80,10 @@ export const updateProduct = async (productId, productData) => {
   const response = await api.put(`/inventory/${productId}`, productData);
   return response.data;
 };
+export const applyCampaignUpdate = async (productId, campaignData) => {
+  const response = await api.patch(`/inventory/${productId}/campaign`, campaignData);
+  return response.data;
+};
 export const createProduct = async (productData) => {
   const response = await api.post('/inventory', productData);
   return response.data;

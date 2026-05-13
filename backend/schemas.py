@@ -15,6 +15,10 @@ class ProductResponse(ProductBase):
     id: int
     class Config:
         from_attributes = True
+
+
+class ProductCampaignApplyRequest(BaseModel):
+    price: Optional[float] = Field(None, ge=0.0, description="Kampanya önerisiyle uygulanacak yeni fiyat")
 class OrderItemBase(BaseModel):
     product_id: int
     quantity: float = Field(..., gt=0, description="Sipariş adedi en az 1 olmalıdır")

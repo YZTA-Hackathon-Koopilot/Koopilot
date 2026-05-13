@@ -65,7 +65,9 @@ def get_inventory_insights(db: Session = Depends(get_db)):
                 "name": p.name, 
                 "category": p.category, 
                 "price": p.price,
-                "stock": p.stock
+                "stock": p.stock,
+                "unit": p.unit,
+                "description": p.description
             } for p in non_sellers
         ]
     }
@@ -108,6 +110,20 @@ def update_product(product_id: int, update_data: schemas.ProductCreate, db: Sess
     product.stock = update_data.stock
     product.price = update_data.price
     
+    db.commit()
+    db.refresh(product)
+    return product
+
+
+@router.patch("/{product_id}/campaign", response_model=schemas.ProductResponse, summary="Kampanya önerisinden gelen kısmi ürün güncellemesini uygula")
+def apply_campaign_update(product_id: int, payload: schemas.ProductCampaignApplyRequest, db: Session = Depends(get_db)):
+    product = db.query(models.Product).filter(models.Product.id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Ürün bulunamadı")
+
+    if payload.price is not None:
+        product.price = payload.price
+
     db.commit()
     db.refresh(product)
     return product

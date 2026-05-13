@@ -341,12 +341,35 @@ def generate_campaign_suggestion(product_name: str, price: float, stock: float) 
     Stok Durumu: {stock}
 
     Lütfen bu ürün için profesyonel, ilgi çekici ve kooperatif ruhuna uygun bir kampanya/indirim kurgusu hazırla.
-    Kısa, öz ve etkileyici bir metin olsun. 
-    İndirim oranı önerisi (%10, %20 vb.) ve neden bu ürünü almaları gerektiğine dair bir cümle ekle.
+    Cevaba selamlama, kendini tanıtma veya "Merhaba, ben Koopilot" gibi giriş cümlesiyle başlama.
+    Sadece aşağıdaki Markdown gövdesini üret.
+    Markdown formatında, kısa ve uygulanabilir cevap ver.
+    Panelin şu anda gerçekten uygulayabildiği tek otomatik aksiyon ürün fiyatı güncellemesidir.
+    "Günün Fırsatları", "Öne Çıkanlar", "Çok Satanlar", "İndirim Yönetimi" gibi panelde olmayan sayfa/bölüm/özellikleri uygulanabilir aksiyon olarak yazma.
+    Şu başlıkları kullan:
+    ### Kampanya Fikri
+    - Net kampanya adı ve indirim oranı
+    - Müşteriye söylenecek kısa değer önerisi
+
+    ### Panelde Uygulanabilir Aksiyonlar
+    - Sadece yeni fiyatı içeren tek madde yaz. Örnek: Ürün fiyatını 112 TL olarak güncelle.
+
+    ### Stratejik Notlar
+    - Panelde otomatik uygulanamayan 2 kısa pazarlama fikri yaz
+    - Bu notlarda olmayan panel sayfası varmış gibi konuşma; "ileride eklenebilir" veya "manuel paylaşımda kullanılabilir" gibi dürüst ifadeler kullan
     """
     
     if not client:
-        return f"Kampanya Önerisi ({product_name}): %15 indirimle stokları eritebiliriz! '{product_name}' sağlıklı ve doğal yapısıyla sofraların vazgeçilmezi."
+        return (
+            f"### Kampanya Fikri\n"
+            f"- **{product_name} Bahar Paketi:** %15 indirimle stokları hareketlendirebiliriz.\n"
+            f"- Ürünün doğal ve kooperatif emeğiyle hazırlanmış yönünü öne çıkaralım.\n\n"
+            f"### Panelde Uygulanabilir Aksiyonlar\n"
+            f"- Ürün fiyatını {round(price * 0.85, 2)} TL olarak güncelle.\n\n"
+            f"### Stratejik Notlar\n"
+            f"- Bu kampanya metni Telegram veya sosyal medya paylaşımında manuel kullanılabilir.\n"
+            f"- Ürün görselinde kooperatif emeği ve doğal içerik vurgusu öne çıkarılabilir."
+        )
 
     response = client.models.generate_content(
         model='gemini-3.1-flash-lite',

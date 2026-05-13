@@ -14,6 +14,8 @@ import {
   RefreshCw,
   Wheat,
   Trees,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import {
   Bar,
@@ -34,9 +36,11 @@ import {
   getDailySummary,
   getInventoryInsights,
   getCampaignRecommendation,
+  applyCampaignUpdate,
 } from "../services/api";
 import { DailySummarySkeleton } from "./Skeleton";
 import { toDisplayText } from "../utils/display";
+import MarkdownMessage from "./MarkdownMessage";
 
 const COLORS = [
   "#52B788",
@@ -66,6 +70,111 @@ const formatIntent = (intent) => {
   return label.charAt(0).toUpperCase() + label.slice(1);
 };
 
+const buildCampaignActions = (recommendation, product) => {
+  const shorten = (value) => {
+    const text = toDisplayText(value, "").replace(/\*\*/g, "").trim();
+    return text.length > 110 ? `${text.slice(0, 107)}...` : text;
+  };
+  const extractPriceFromText = (value) => {
+    const priceMatch = toDisplayText(value, "").match(/(\d+(?:[.,]\d+)?)\s*TL/i);
+    if (!priceMatch) return null;
+
+    const price = Number(priceMatch[1].replace(",", "."));
+    return Number.isFinite(price) ? price : null;
+  };
+  const text = toDisplayText(recommendation, "");
+  const actionableSection = (
+    text.match(/(?:#{1,6}\s*)?Panelde Uygulanabilir Aksiyonlar\s*:?\s*([\s\S]*?)(?:\n\s*(?:#{1,6}\s*)?Stratejik Notlar|$)/i)?.[1]
+    || text.match(/(?:#{1,6}\s*)?Uygulanabilir Öneriler\s*:?\s*([\s\S]*)/i)?.[1]
+    || ""
+  );
+  const lines = actionableSection
+    .split("\n")
+    .map((line) => line.replace(/^[-*•\d.)\s]+/, "").replace(/^#+\s*/, "").trim())
+    .filter((line) => line.length > 12)
+    .filter((line) => !/^merhaba/i.test(line))
+    .filter((line) => !/^kampanya önerisi/i.test(line))
+    .filter((line) => !/^kampanya fikri/i.test(line))
+    .filter((line) => !/^uygulanabilir öneriler/i.test(line))
+    .filter((line) => !/^kampanya adı/i.test(line))
+    .filter((line) => !/^değer önerisi/i.test(line))
+    .map((line) => {
+      const price = extractPriceFromText(line);
+      if (price === null) return null;
+      return {
+        type: "price_update",
+        price,
+        label: `Fiyatı ${price.toLocaleString("tr-TR")} TL olarak güncelle`,
+        source: shorten(line),
+      };
+    })
+    .filter(Boolean)
+    .slice(0, 2);
+
+  return lines.map((action, index) => ({
+    id: `action-${index}`,
+    ...action,
+  }));
+};
+
+const extractPriceFromActions = (actions) => {
+  const directPrice = actions.find((action) => Number.isFinite(action.price))?.price;
+  if (directPrice !== undefined) return directPrice;
+
+  const joinedText = actions.map((action) => action.label).join(" ");
+  const priceMatch = joinedText.match(/(\d+(?:[.,]\d+)?)\s*TL/i);
+  if (!priceMatch) return null;
+
+  const price = Number(priceMatch[1].replace(",", "."));
+  return Number.isFinite(price) ? price : null;
+};
+
+const cleanCampaignRecommendation = (recommendation) => {
+  const text = toDisplayText(recommendation, "");
+  const headingIndex = text.search(/(?:^|\n)\s*(?:#{1,6}\s*)?Kampanya Fikri/i);
+  if (headingIndex >= 0) {
+    return text.slice(headingIndex).trim();
+  }
+
+  return text
+    .split("\n")
+    .filter((line, index) => !(index === 0 && /^merhaba.*koopilot/i.test(line.trim())))
+    .join("\n")
+    .trim();
+};
+
+const readStoredCampaignRecommendations = () => {
+  try {
+    return JSON.parse(localStorage.getItem("koopilot_campaign_recommendations") || "{}");
+  } catch {
+    return {};
+  }
+};
+
+const readStoredSelectedCampaignActions = () => {
+  try {
+    return JSON.parse(localStorage.getItem("koopilot_selected_campaign_actions") || "{}");
+  } catch {
+    return {};
+  }
+};
+
+const readStoredCampaignVisibility = () => {
+  try {
+    return JSON.parse(localStorage.getItem("koopilot_campaign_visibility") || "{}");
+  } catch {
+    return {};
+  }
+};
+
+const readStoredCampaigns = () => {
+  try {
+    return JSON.parse(localStorage.getItem("koopilot_applied_campaigns") || "{}");
+  } catch {
+    return {};
+  }
+};
+
 const DailySummary = () => {
   const [summary, setSummary] = useState(null);
   const [insights, setInsights] = useState(null);
@@ -73,8 +182,12 @@ const DailySummary = () => {
   const [isInsightsLoading, setIsInsightsLoading] = useState(true);
   const [timeRange, setTimeRange] = useState("daily");
   const [lastUpdated, setLastUpdated] = useState(new Date());
-  const [campaignRec, setCampaignRec] = useState({}); // { productId: text }
+  const [campaignRec, setCampaignRec] = useState(readStoredCampaignRecommendations); // { productId: text }
   const [isRecLoading, setIsRecLoading] = useState({});
+  const [selectedCampaignActions, setSelectedCampaignActions] = useState(readStoredSelectedCampaignActions);
+  const [campaignVisibility, setCampaignVisibility] = useState(readStoredCampaignVisibility);
+  const [appliedCampaigns, setAppliedCampaigns] = useState(readStoredCampaigns);
+  const [campaignApplyStatus, setCampaignApplyStatus] = useState({});
 
   const fetchSummary = async (isManual = false) => {
     if (isManual) setIsLoading(true);
@@ -109,21 +222,96 @@ const DailySummary = () => {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    localStorage.setItem("koopilot_campaign_recommendations", JSON.stringify(campaignRec));
+  }, [campaignRec]);
+
+  useEffect(() => {
+    localStorage.setItem("koopilot_selected_campaign_actions", JSON.stringify(selectedCampaignActions));
+  }, [selectedCampaignActions]);
+
+  useEffect(() => {
+    localStorage.setItem("koopilot_campaign_visibility", JSON.stringify(campaignVisibility));
+  }, [campaignVisibility]);
+
   const handleCampaignRequest = async (product) => {
     setIsRecLoading((prev) => ({ ...prev, [product.id]: true }));
     try {
       const data = await getCampaignRecommendation(product);
       setCampaignRec((prev) => ({
         ...prev,
-        [product.id]: toDisplayText(data?.recommendation, "Öneri alınamadı."),
+        [product.id]: cleanCampaignRecommendation(data?.recommendation || "Öneri alınamadı."),
       }));
+      setSelectedCampaignActions((prev) => ({ ...prev, [product.id]: [] }));
+      setCampaignVisibility((prev) => ({ ...prev, [product.id]: true }));
     } catch {
       setCampaignRec((prev) => ({
         ...prev,
         [product.id]: "Öneri alınamadı. Lütfen tekrar deneyin.",
       }));
+      setCampaignVisibility((prev) => ({ ...prev, [product.id]: true }));
     } finally {
       setIsRecLoading((prev) => ({ ...prev, [product.id]: false }));
+    }
+  };
+
+  const toggleCampaignRecommendation = (productId) => {
+    setCampaignVisibility((prev) => ({
+      ...prev,
+      [productId]: !(prev[productId] ?? true),
+    }));
+  };
+
+  const toggleCampaignAction = (productId, actionId) => {
+    setSelectedCampaignActions((prev) => {
+      const current = prev[productId] || [];
+      const next = current.includes(actionId)
+        ? current.filter((id) => id !== actionId)
+        : [...current, actionId];
+      return { ...prev, [productId]: next };
+    });
+  };
+
+  const applyCampaignActions = async (product, actions) => {
+    const selectedIds = selectedCampaignActions[product.id] || [];
+    const selectedActions = actions.filter((action) => selectedIds.includes(action.id));
+    if (selectedActions.length === 0) return;
+
+    setCampaignApplyStatus((prev) => ({ ...prev, [product.id]: "applying" }));
+
+    const newPrice = extractPriceFromActions(selectedActions);
+    let appliedUpdates = {};
+
+    try {
+      if (newPrice !== null) {
+        const updatedProduct = await applyCampaignUpdate(product.id, { price: newPrice });
+        appliedUpdates = { price: updatedProduct.price };
+        setInsights((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            non_sellers: (prev.non_sellers || []).map((item) => (
+              item.id === product.id ? { ...item, price: updatedProduct.price } : item
+            )),
+          };
+        });
+      }
+
+      const nextCampaigns = {
+        ...appliedCampaigns,
+        [product.id]: {
+          product_name: product.name,
+          applied_at: new Date().toISOString(),
+          actions: selectedActions,
+          updates: appliedUpdates,
+        },
+      };
+      setAppliedCampaigns(nextCampaigns);
+      localStorage.setItem("koopilot_applied_campaigns", JSON.stringify(nextCampaigns));
+      setCampaignApplyStatus((prev) => ({ ...prev, [product.id]: "success" }));
+    } catch (error) {
+      console.error("Kampanya önerisi uygulanamadı:", error);
+      setCampaignApplyStatus((prev) => ({ ...prev, [product.id]: "error" }));
     }
   };
 
@@ -707,93 +895,274 @@ const DailySummary = () => {
                   gap: "12px",
                 }}
               >
-                {(insights?.non_sellers || []).map((p) => (
-                  <div
-                    key={p.id}
-                    style={{
-                      padding: "16px",
-                      backgroundColor: "var(--surface-muted)",
-                      borderRadius: "14px",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "12px",
-                    }}
-                  >
+                {(insights?.non_sellers || []).map((p) => {
+                  const recommendation = cleanCampaignRecommendation(campaignRec[p.id]);
+                  const campaignActions = recommendation ? buildCampaignActions(recommendation, p) : [];
+                  const selectedActions = selectedCampaignActions[p.id] || [];
+                  const appliedCampaign = appliedCampaigns[p.id];
+                  const applyStatus = campaignApplyStatus[p.id];
+                  const isRecommendationOpen = recommendation ? (campaignVisibility[p.id] ?? true) : false;
+
+                  return (
                     <div
+                      key={p.id}
                       style={{
+                        padding: "16px",
+                        backgroundColor: "var(--surface-muted)",
+                        borderRadius: "14px",
                         display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
+                        flexDirection: "column",
+                        gap: "12px",
+                        border: appliedCampaign ? "1px solid rgba(42, 157, 143, 0.35)" : "1px solid transparent",
                       }}
                     >
-                      <div>
-                        <div style={{ fontWeight: 700, fontSize: "14px" }}>
-                          {toDisplayText(p.name, "Ürün")}
-                        </div>
-                        <div
-                          style={{
-                            fontSize: "12px",
-                            color: "var(--text-light)",
-                          }}
-                        >
-                          Stok: {Number(p.stock || 0).toLocaleString("tr-TR")} | {Number(p.price || 0).toLocaleString("tr-TR")} TL
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => handleCampaignRequest(p)}
-                        disabled={isRecLoading[p.id]}
-                        style={{
-                          padding: "8px 14px",
-                          backgroundColor: "var(--primary-mid)",
-                          color: "white",
-                          fontSize: "12px",
-                          fontWeight: 700,
-                          borderRadius: "10px",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "6px",
-                          cursor: "pointer",
-                          border: "none",
-                        }}
-                      >
-                        {isRecLoading[p.id] ? (
-                          <RefreshCw size={14} className="spin-animation" />
-                        ) : (
-                          <Tag size={14} />
-                        )}
-                        Kampanya Önerisi
-                      </button>
-                    </div>
-                    {campaignRec[p.id] && (
                       <div
                         style={{
-                          padding: "12px",
-                          backgroundColor: "white",
-                          borderRadius: "10px",
-                          fontSize: "13px",
-                          border: "1px solid rgba(82, 183, 136, 0.2)",
-                          animation: "fadeIn 0.3s ease-out",
-                          lineHeight: 1.5,
-                          color: "var(--primary-dark)",
-                          whiteSpace: "pre-wrap",
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          gap: "16px",
                         }}
                       >
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: "14px", display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                            {toDisplayText(p.name, "Ürün")}
+                            {appliedCampaign && (
+                              <span style={{
+                                padding: "3px 8px",
+                                borderRadius: "999px",
+                                backgroundColor: "rgba(42, 157, 143, 0.12)",
+                                color: "var(--success)",
+                                fontSize: "11px",
+                                fontWeight: 900,
+                              }}>
+                                Uygulandı
+                              </span>
+                            )}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: "12px",
+                              color: "var(--text-light)",
+                            }}
+                          >
+                            Stok: {Number(p.stock || 0).toLocaleString("tr-TR")} | {Number(p.price || 0).toLocaleString("tr-TR")} TL
+                          </div>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", justifyContent: "flex-end" }}>
+                          {recommendation && (
+                            <button
+                              type="button"
+                              onClick={() => toggleCampaignRecommendation(p.id)}
+                              style={{
+                                padding: "8px 12px",
+                                backgroundColor: "var(--surface)",
+                                color: "var(--text-dark)",
+                                fontSize: "12px",
+                                fontWeight: 800,
+                                borderRadius: "10px",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "6px",
+                                cursor: "pointer",
+                                border: "1px solid var(--border-color)",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {isRecommendationOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                              {isRecommendationOpen ? "Öneriyi Kapat" : "Öneriyi Aç"}
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleCampaignRequest(p)}
+                            disabled={isRecLoading[p.id]}
+                            style={{
+                              padding: "8px 14px",
+                              backgroundColor: "var(--primary-mid)",
+                              color: "white",
+                              fontSize: "12px",
+                              fontWeight: 800,
+                              borderRadius: "10px",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "7px",
+                              cursor: isRecLoading[p.id] ? "default" : "pointer",
+                              border: "none",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {isRecLoading[p.id] ? (
+                              <RefreshCw size={14} className="spin-animation" />
+                            ) : (
+                              <Tag size={14} />
+                            )}
+                            {isRecLoading[p.id]
+                              ? "Öneri Oluşturuluyor"
+                              : recommendation
+                                ? "Tekrar Öneri Oluştur"
+                                : "Kampanya Önerisi Yap"}
+                            <span style={{
+                              padding: "2px 6px",
+                              borderRadius: "999px",
+                              backgroundColor: "rgba(255, 255, 255, 0.18)",
+                              fontSize: "10px",
+                              fontWeight: 900,
+                              letterSpacing: "0.02em",
+                            }}>
+                              AI
+                            </span>
+                          </button>
+                        </div>
+                      </div>
+                      {recommendation && !isRecommendationOpen && (
+                        <div style={{
+                          padding: "10px 12px",
+                          borderRadius: "12px",
+                          backgroundColor: "var(--surface-elevated)",
+                          border: "1px solid rgba(82, 183, 136, 0.18)",
+                          color: "var(--text-light)",
+                          fontSize: "12px",
+                          fontWeight: 800,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}>
+                          <Sparkles size={14} color="var(--primary-mid)" />
+                          AI kampanya önerisi hazır. Görmek için “Öneriyi Aç”ı kullanın.
+                        </div>
+                      )}
+                      {recommendation && isRecommendationOpen && (
                         <div
                           style={{
-                            fontWeight: 800,
-                            marginBottom: "4px",
-                            fontSize: "11px",
-                            textTransform: "uppercase",
-                            color: "var(--primary-mid)",
+                            padding: "14px",
+                            backgroundColor: "var(--surface-elevated)",
+                            borderRadius: "12px",
+                            fontSize: "13px",
+                            border: "1px solid rgba(82, 183, 136, 0.22)",
+                            animation: "fadeIn 0.3s ease-out",
+                            lineHeight: 1.5,
+                            color: "var(--text-dark)",
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "14px",
                           }}
                         >
-                          Koopilot Önerisi:
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              fontWeight: 900,
+                              fontSize: "11px",
+                              textTransform: "uppercase",
+                              color: "var(--primary-mid)",
+                            }}
+                          >
+                            <Sparkles size={14} />
+                            Koopilot AI Önerisi
+                          </div>
+                          <MarkdownMessage text={toDisplayText(recommendation)} />
+
+                          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                            <div style={{ fontSize: "12px", color: "var(--text-light)", fontWeight: 800 }}>
+                              Panelde uygulanabilir aksiyonlar:
+                            </div>
+                            {campaignActions.length === 0 ? (
+                              <div style={{
+                                padding: "10px 12px",
+                                borderRadius: "10px",
+                                backgroundColor: "var(--surface)",
+                                border: "1px dashed var(--border-color)",
+                                color: "var(--text-light)",
+                                fontSize: "12px",
+                                fontWeight: 700,
+                              }}>
+                                Bu öneri şu an otomatik uygulanabilecek bir panel aksiyonu içermiyor. Stratejik not olarak kullanılabilir.
+                              </div>
+                            ) : (
+                              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                                {campaignActions.map((action) => {
+                                  const isSelected = selectedActions.includes(action.id);
+                                  return (
+                                    <button
+                                      key={action.id}
+                                      type="button"
+                                      title={action.source}
+                                      onClick={() => toggleCampaignAction(p.id, action.id)}
+                                      style={{
+                                        padding: "8px 10px",
+                                        borderRadius: "999px",
+                                        border: isSelected ? "1px solid var(--primary-light)" : "1px solid var(--border-color)",
+                                        backgroundColor: isSelected ? "rgba(82, 183, 136, 0.14)" : "var(--surface)",
+                                        color: isSelected ? "var(--primary-dark)" : "var(--text-dark)",
+                                        fontSize: "12px",
+                                        fontWeight: 800,
+                                        cursor: "pointer",
+                                        maxWidth: "100%",
+                                      }}
+                                    >
+                                      {action.label}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+
+                          {appliedCampaign && (
+                            <div style={{
+                              padding: "10px 12px",
+                              borderRadius: "10px",
+                              backgroundColor: "rgba(42, 157, 143, 0.1)",
+                              color: "var(--success)",
+                              fontSize: "12px",
+                              fontWeight: 800,
+                            }}>
+                              {appliedCampaign.actions.length} öneri uygulandı
+                              {appliedCampaign.updates?.price !== undefined ? ` · Yeni fiyat: ${Number(appliedCampaign.updates.price).toLocaleString("tr-TR")} TL` : ""}
+                              {" · "}
+                              {new Date(appliedCampaign.applied_at).toLocaleString("tr-TR")}
+                            </div>
+                          )}
+
+                          {applyStatus === "error" && (
+                            <div style={{
+                              padding: "10px 12px",
+                              borderRadius: "10px",
+                              backgroundColor: "rgba(230, 57, 70, 0.1)",
+                              color: "var(--error)",
+                              fontSize: "12px",
+                              fontWeight: 800,
+                            }}>
+                              Öneriler uygulanamadı. Backend bağlantısını kontrol edip tekrar deneyin.
+                            </div>
+                          )}
+
+                          {campaignActions.length > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => applyCampaignActions(p, campaignActions)}
+                              disabled={selectedActions.length === 0 || applyStatus === "applying"}
+                              style={{
+                                alignSelf: "flex-start",
+                                padding: "10px 14px",
+                                borderRadius: "12px",
+                                backgroundColor: "var(--primary-mid)",
+                                color: "var(--on-primary)",
+                                fontSize: "12px",
+                                fontWeight: 900,
+                                opacity: selectedActions.length === 0 || applyStatus === "applying" ? 0.55 : 1,
+                                cursor: selectedActions.length === 0 || applyStatus === "applying" ? "default" : "pointer",
+                              }}
+                            >
+                              {applyStatus === "applying" ? "Uygulanıyor..." : "Önerileri Uygula"}
+                            </button>
+                          )}
                         </div>
-                        {toDisplayText(campaignRec[p.id])}
-                      </div>
-                    )}
-                  </div>
-                ))}
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
