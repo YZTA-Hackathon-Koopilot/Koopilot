@@ -265,12 +265,12 @@ Frontend: **http://localhost:5173** adresinde çalışacaktır.
 ## 🌐 Demoya Erişin
 
 
-- Backend: Render Free Web Service
-- Frontend: Vercel, Netlify veya Render Static Site
-- Mesaj kanalı: Web panel test akışı + opsiyonel Telegram Bot API + WhatsApp webhook altyapısı
+- Backend: Render
+- Frontend: Vercel
+- Mesaj kanalı: Web panel operasyon ajanı + Telegram Bot API + WhatsApp webhook altyapısı
 
 
-Canlı backend:
+Backend:
 
 ```text
 https://koopilot-backend.onrender.com/
