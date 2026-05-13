@@ -123,6 +123,7 @@ const ShippingPanel = () => {
                 height: "48px",
                 paddingLeft: "48px",
                 backgroundColor: "var(--surface-muted)",
+                color: "var(--text-dark)",
               }}
             />
           </div>
@@ -496,6 +497,7 @@ const ShippingPanel = () => {
                     selectedShipment.shipping_status === "Kargoya Verildi"
                       ? "var(--surface-soft)"
                       : "var(--surface)",
+                  color: "var(--text-dark)",
                   border: "1px solid var(--border-color)",
                   borderRadius: "12px",
                   cursor: "pointer",
@@ -520,6 +522,7 @@ const ShippingPanel = () => {
                     selectedShipment.shipping_status === "Yolda"
                       ? "var(--surface-soft)"
                       : "var(--surface)",
+                  color: "var(--text-dark)",
                   border: "1px solid var(--border-color)",
                   borderRadius: "12px",
                   cursor: "pointer",
